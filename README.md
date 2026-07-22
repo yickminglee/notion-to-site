@@ -232,7 +232,9 @@ steps in this order**. Don't try to set `DOMAIN` up front — step 2 gives you o
    Leave `DOMAIN` unset. The build warns that canonical URLs point at a placeholder —
    that is expected here and fixed by step 2.
 3. Build and start commands come from [`railway.json`](railway.json):
-   - build: `npm ci && npm run build`
+   - build: `npm run build` (Nixpacks runs `npm ci` itself — do **not** add it to
+     `buildCommand`, or the second `npm ci` fails with `EBUSY` trying to remove
+     `node_modules/.cache` while Railway has it mounted as a build cache)
    - start: `npm start` (binds Railway's `$PORT`)
 
 The site is now live but has no public URL yet.
