@@ -24,6 +24,13 @@ export const site = {
 
   /** Label for this site's look. The actual styling lives in src/styles/theme.css. */
   theme: 'default',
+
+  /**
+   * Which Notion heading introduces the FAQ. Toggles under it become FAQPage
+   * JSON-LD. Defaults to /^(faq|frequently asked)/i — override for another
+   * language or wording, e.g. /^常見問題/.
+   */
+  // faqHeading: /^(faq|frequently asked)/i,
 };
 
 /**
@@ -73,8 +80,18 @@ export const buttons = {
 };
 
 /**
- * FAQ — rendered as an accessible <dl> plus FAQPage JSON-LD.
- * Lead each answer with a standalone sentence that makes sense quoted alone.
+ * FAQ — FALLBACK ONLY.
+ *
+ * Write the FAQ in **Notion** instead: add a heading whose text starts with
+ * "FAQ" (or "Frequently asked"), then one **toggle** per question — the toggle
+ * title is the question, its contents are the answer. Those render as ordinary
+ * page content and the build also emits FAQPage JSON-LD from them, so the FAQ
+ * stays editable in Notion like everything else.
+ *
+ * Use this array only for a site with no FAQ in its Notion page. Anything here
+ * is copy that does not exist in Notion, so it will not update when the page
+ * does — and it is published in the site owner's voice. A Notion FAQ always
+ * takes precedence over this array.
  */
 export const faq = [
   // { q: 'Where are lessons held?', a: 'Lessons are held at …' },

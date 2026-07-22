@@ -61,6 +61,72 @@ export const routableRows = databases.flatMap((db) => {
 });
 
 /**
+ * FAQ, read from the Notion page itself.
+ *
+ * Write the FAQ in Notion as **toggle blocks under a heading** whose text
+ * starts with "FAQ" or "Frequently asked" (configurable via `faqHeading`).
+ * Each toggle's summary is the question and its children are the answer.
+ *
+ * The toggles already render as ordinary page content; this only extracts them
+ * a second time so the page can also emit FAQPage JSON-LD. Nothing is invented
+ * and nothing is duplicated on screen — edit the FAQ in Notion like any other
+ * content and the structured data follows on the next build.
+ */
+const HEADING_TYPES = ['heading_1', 'heading_2', 'heading_3'];
+
+/** All descendant text of a block, flattened — used for an answer body. */
+function blockText(blocks) {
+  const parts = [];
+  for (const block of blocks ?? []) {
+    const node = block[block.type];
+    const text = toPlain(node?.rich_text);
+    if (text.trim()) parts.push(text.trim());
+    if (block.__children) {
+      const nested = blockText(block.__children);
+      if (nested) parts.push(nested);
+    }
+  }
+  return parts.join(' ');
+}
+
+/** Find the FAQ heading anywhere in the tree and read the toggles under it. */
+function findFaq(blocks, pattern) {
+  for (let i = 0; i < (blocks?.length ?? 0); i++) {
+    const block = blocks[i];
+
+    if (HEADING_TYPES.includes(block.type)) {
+      const text = toPlain(block[block.type]?.rich_text).trim();
+      if (pattern.test(text)) {
+        const items = [];
+        // Collect toggles until the next heading at the same or higher level.
+        for (let j = i + 1; j < blocks.length; j++) {
+          const next = blocks[j];
+          if (HEADING_TYPES.includes(next.type)) {
+            if (HEADING_TYPES.indexOf(next.type) <= HEADING_TYPES.indexOf(block.type)) break;
+            continue;
+          }
+          if (next.type !== 'toggle') continue;
+          const q = toPlain(next.toggle?.rich_text).trim();
+          const a = blockText(next.__children);
+          if (q && a) items.push({ q, a });
+        }
+        if (items.length) return items;
+      }
+    }
+
+    if (block.__children) {
+      const nested = findFaq(block.__children, pattern);
+      if (nested.length) return nested;
+    }
+  }
+  return [];
+}
+
+export function faqFromNotion(pattern = /^(faq|frequently asked)/i) {
+  return findFaq(page.blocks, pattern);
+}
+
+/**
  * First meaningful paragraph of a row, used as its meta description.
  * Falls back to the tagline at the call site when a row has no prose.
  */

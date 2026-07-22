@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import NotionBlocks from '../components/NotionBlocks.astro';
 import DatabaseSection from '../components/DatabaseSection.astro';
 import Faq from '../components/Faq.astro';
-import { page, visibleDatabases, inlineDatabaseIds } from '../lib/content.mjs';
+import { page, visibleDatabases, inlineDatabaseIds, faqFromNotion } from '../lib/content.mjs';
 import { site, faq } from '../../site.config.mjs';
 
 const title = `${site.name} — ${site.tagline}`;
@@ -13,12 +13,22 @@ const description = `${site.tagline} Based in ${site.location}.`;
 // the block tree still gets rendered here so no content is silently dropped.
 const orphanDatabases = visibleDatabases.filter((db) => !inlineDatabaseIds.has(db.id));
 
+/**
+ * Prefer an FAQ written in Notion (toggles under an "FAQ" heading) — it already
+ * renders as page content, so only its JSON-LD is emitted here. The `faq` array
+ * in site.config.mjs is a fallback for sites with no FAQ in Notion; that one has
+ * to be rendered too, since nothing else puts it on the page.
+ */
+const notionFaq = faqFromNotion(site.faqHeading ?? undefined);
+const configFaq = notionFaq.length ? [] : (faq ?? []);
+const faqItems = notionFaq.length ? notionFaq : configFaq;
+
 const faqSchema =
-  faq.length > 0
+  faqItems.length > 0
     ? [{
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: faq.map((item) => ({
+        mainEntity: faqItems.map((item) => ({
           '@type': 'Question',
           name: item.q,
           acceptedAnswer: { '@type': 'Answer', text: item.a },
@@ -48,6 +58,6 @@ const faqSchema =
 
     {orphanDatabases.map((db) => <DatabaseSection db={db} />)}
 
-    <Faq items={faq} />
+    <Faq items={configFaq} />
   </article>
 </Base>

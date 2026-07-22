@@ -199,6 +199,23 @@ sentence** — one that still makes sense quoted with no surrounding context —
 specific service names ("puppy potty training", "pre-schooler swimming lessons") in
 headings rather than generic ones.
 
+### FAQ
+
+Write the FAQ **in Notion**, not in config: add a heading whose text starts with `FAQ`
+(or `Frequently asked`), then one **toggle per question** — the toggle title is the
+question, its contents are the answer. Collection stops at the next heading of the same
+or higher level, so the FAQ can sit anywhere on the page.
+
+Those toggles render as ordinary page content, and the build also emits `FAQPage`
+JSON-LD from them. The FAQ therefore stays editable in Notion like everything else, and
+the structured data follows on the next build.
+
+Override the heading pattern with `site.faqHeading` for another language or wording
+(e.g. `/^常見問題/`). The `faq` array in `site.config.mjs` is a **fallback only**, for a
+site with no FAQ in its Notion page — content there does not live in Notion, will not
+update when the page does, and is published in the site owner's voice, so prefer the
+Notion route. A Notion FAQ always wins over the array.
+
 ### Contact / CTA
 
 The template renders what's in Notion and nothing more. It never injects a booking
