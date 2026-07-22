@@ -202,9 +202,17 @@ headings rather than generic ones.
 ### FAQ
 
 Write the FAQ **in Notion**, not in config: add a heading whose text starts with `FAQ`
-(or `Frequently asked`), then one **toggle per question** — the toggle title is the
-question, its contents are the answer. Collection stops at the next heading of the same
-or higher level, so the FAQ can sit anywhere on the page.
+(or `Frequently asked`), then write the questions under it. Three forms are recognised,
+so use whichever is natural:
+
+| Form | Question | Answer |
+| --- | --- | --- |
+| **Toggles** (tidiest) | the toggle title | the toggle's contents |
+| **Sub-headings** | the heading | the blocks under it |
+| **Paragraph pairs** | a paragraph ending in `?` | the paragraphs after it |
+
+Collection stops at the next heading of the same or higher level, so the FAQ can sit
+anywhere on the page.
 
 Those toggles render as ordinary page content, and the build also emits `FAQPage`
 JSON-LD from them. The FAQ therefore stays editable in Notion like everything else, and

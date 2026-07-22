@@ -63,14 +63,22 @@ export const routableRows = databases.flatMap((db) => {
 /**
  * FAQ, read from the Notion page itself.
  *
- * Write the FAQ in Notion as **toggle blocks under a heading** whose text
- * starts with "FAQ" or "Frequently asked" (configurable via `faqHeading`).
- * Each toggle's summary is the question and its children are the answer.
+ * Put the FAQ under a heading whose text starts with "FAQ" or "Frequently
+ * asked" (configurable via `faqHeading`). Three ways of writing it are
+ * recognised, so you can use whichever is natural in Notion:
  *
- * The toggles already render as ordinary page content; this only extracts them
- * a second time so the page can also emit FAQPage JSON-LD. Nothing is invented
- * and nothing is duplicated on screen — edit the FAQ in Notion like any other
- * content and the structured data follows on the next build.
+ *   1. **Toggles** — toggle title is the question, its contents the answer.
+ *   2. **Paragraph pairs** — a paragraph ending in "?" is a question, and the
+ *      paragraphs after it are its answer, until the next question.
+ *   3. **Sub-headings** — a lower-level heading is the question, the blocks
+ *      under it the answer.
+ *
+ * Collection stops at the next heading of the same or higher level.
+ *
+ * These blocks already render as ordinary page content; this reads them a
+ * second time only so the page can also emit FAQPage JSON-LD. Nothing is
+ * invented and nothing is duplicated on screen — edit the FAQ in Notion like
+ * any other content and the structured data follows on the next build.
  */
 const HEADING_TYPES = ['heading_1', 'heading_2', 'heading_3'];
 
@@ -89,7 +97,57 @@ function blockText(blocks) {
   return parts.join(' ');
 }
 
-/** Find the FAQ heading anywhere in the tree and read the toggles under it. */
+/** The blocks belonging to a section, i.e. until the next same-or-higher heading. */
+function sectionBlocks(blocks, headingIndex) {
+  const level = HEADING_TYPES.indexOf(blocks[headingIndex].type);
+  const out = [];
+  for (let i = headingIndex + 1; i < blocks.length; i++) {
+    const block = blocks[i];
+    if (HEADING_TYPES.includes(block.type) && HEADING_TYPES.indexOf(block.type) <= level) break;
+    out.push(block);
+  }
+  return out;
+}
+
+/** Read Q&A pairs out of a section, accepting the three ways of writing them. */
+function readFaqSection(section) {
+  // 1. Toggles — the tidiest form, and unambiguous.
+  const toggles = section
+    .filter((b) => b.type === 'toggle')
+    .map((b) => ({ q: toPlain(b.toggle?.rich_text).trim(), a: blockText(b.__children) }))
+    .filter((x) => x.q && x.a);
+  if (toggles.length) return toggles;
+
+  // 2. Sub-headings — heading is the question, blocks beneath it the answer.
+  const subheads = [];
+  for (let i = 0; i < section.length; i++) {
+    if (!HEADING_TYPES.includes(section[i].type)) continue;
+    const q = toPlain(section[i][section[i].type]?.rich_text).trim();
+    const a = blockText(sectionBlocks(section, i));
+    if (q && a) subheads.push({ q, a });
+  }
+  if (subheads.length) return subheads;
+
+  // 3. Paragraph pairs — a paragraph ending in "?" is a question, and every
+  //    paragraph after it belongs to its answer until the next question.
+  const items = [];
+  let current = null;
+  for (const block of section) {
+    const text = toPlain(block[block.type]?.rich_text).trim();
+    if (!text) continue;
+    // Handles "?" plus the full-width "？" used in Chinese text.
+    if (/[?？]$/.test(text)) {
+      if (current?.a.length) items.push({ q: current.q, a: current.a.join(' ') });
+      current = { q: text, a: [] };
+    } else if (current) {
+      current.a.push(text);
+    }
+  }
+  if (current?.a.length) items.push({ q: current.q, a: current.a.join(' ') });
+  return items;
+}
+
+/** Find the FAQ heading anywhere in the tree and read the Q&A beneath it. */
 function findFaq(blocks, pattern) {
   for (let i = 0; i < (blocks?.length ?? 0); i++) {
     const block = blocks[i];
@@ -97,19 +155,7 @@ function findFaq(blocks, pattern) {
     if (HEADING_TYPES.includes(block.type)) {
       const text = toPlain(block[block.type]?.rich_text).trim();
       if (pattern.test(text)) {
-        const items = [];
-        // Collect toggles until the next heading at the same or higher level.
-        for (let j = i + 1; j < blocks.length; j++) {
-          const next = blocks[j];
-          if (HEADING_TYPES.includes(next.type)) {
-            if (HEADING_TYPES.indexOf(next.type) <= HEADING_TYPES.indexOf(block.type)) break;
-            continue;
-          }
-          if (next.type !== 'toggle') continue;
-          const q = toPlain(next.toggle?.rich_text).trim();
-          const a = blockText(next.__children);
-          if (q && a) items.push({ q, a });
-        }
+        const items = readFaqSection(sectionBlocks(blocks, i));
         if (items.length) return items;
       }
     }
