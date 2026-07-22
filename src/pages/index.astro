@@ -3,11 +3,15 @@ import Base from '../layouts/Base.astro';
 import NotionBlocks from '../components/NotionBlocks.astro';
 import DatabaseSection from '../components/DatabaseSection.astro';
 import Faq from '../components/Faq.astro';
-import { page, visibleDatabases } from '../lib/content.mjs';
+import { page, visibleDatabases, inlineDatabaseIds } from '../lib/content.mjs';
 import { site, faq } from '../../site.config.mjs';
 
 const title = `${site.name} — ${site.tagline}`;
 const description = `${site.tagline} Based in ${site.location}.`;
+
+// Databases render in place inside the page body. Anything not reachable from
+// the block tree still gets rendered here so no content is silently dropped.
+const orphanDatabases = visibleDatabases.filter((db) => !inlineDatabaseIds.has(db.id));
 
 const faqSchema =
   faq.length > 0
@@ -32,7 +36,7 @@ const faqSchema =
       <NotionBlocks blocks={page.blocks} />
     </div>
 
-    {visibleDatabases.map((db) => <DatabaseSection db={db} />)}
+    {orphanDatabases.map((db) => <DatabaseSection db={db} />)}
 
     <Faq items={faq} />
   </article>

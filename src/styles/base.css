@@ -258,3 +258,7 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
   margin-inline: 0.05em;
   object-fit: contain;
 }
+
+/* Databases rendered in place sit inside the content flow, so they need less
+   separation than a standalone section appended after the body. */
+.db-section--inline { margin-top: 1.25rem; }

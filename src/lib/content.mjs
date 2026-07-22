@@ -27,6 +27,22 @@ export function layoutFor(dbTitle) {
 /** Databases that should render on the index, in discovery order. */
 export const visibleDatabases = databases.filter((db) => layoutFor(db.title).layout !== 'none');
 
+/**
+ * Ids of databases reachable from the page's block tree — these render in place.
+ * Anything not in here is rendered after the body so no content is lost.
+ */
+export const inlineDatabaseIds = (() => {
+  const ids = new Set();
+  const walk = (blocks) => {
+    for (const block of blocks ?? []) {
+      if (block.type === 'child_database') ids.add(block.id);
+      if (block.__children) walk(block.__children);
+    }
+  };
+  walk(page.blocks);
+  return ids;
+})();
+
 /** Every row that gets its own page — the source of truth for routing + sitemap. */
 export const routableRows = databases.flatMap((db) => {
   const cfg = layoutFor(db.title);

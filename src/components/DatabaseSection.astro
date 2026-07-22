@@ -2,6 +2,10 @@
 /**
  * Renders one discovered database using the layout assigned in the
  * database-to-layout map. Rows link to their own page only when ownPages is on.
+ *
+ * `inline` means the database is being rendered at its real position in the
+ * Notion page, where the author's own heading usually already introduces it —
+ * so no heading is emitted unless the config sets one explicitly.
  */
 import Gallery from './dblayouts/Gallery.astro';
 import List from './dblayouts/List.astro';
@@ -11,7 +15,7 @@ import Testimonial from './dblayouts/Testimonial.astro';
 import Detail from './dblayouts/Detail.astro';
 import { layoutFor } from '../lib/content.mjs';
 
-const { db } = Astro.props;
+const { db, inline = false } = Astro.props;
 const cfg = layoutFor(db.title);
 
 const LAYOUTS = { gallery: Gallery, list: List, cards: Cards, table: Table, testimonial: Testimonial, detail: Detail };
@@ -23,15 +27,14 @@ const items = db.items.map((item) => ({
   href: cfg.ownPages ? `/${item.slug}/` : null,
 }));
 
-const heading = cfg.heading ?? db.title;
-const sectionId = String(heading || 'section')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/^-+|-+$/g, '');
+const heading = cfg.heading ?? (inline ? null : db.title);
+const sectionId = heading
+  ? String(heading).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  : null;
 ---
 
-{items.length > 0 && (
-  <section class="db-section" aria-labelledby={`db-${sectionId}`}>
+{items.length > 0 && cfg.layout !== 'none' && (
+  <section class:list={['db-section', inline && 'db-section--inline']} aria-labelledby={sectionId ? `db-${sectionId}` : null}>
     {heading && <h2 id={`db-${sectionId}`} class="db-section__heading">{heading}</h2>}
     {cfg.intro && <p class="db-section__intro">{cfg.intro}</p>}
     <Layout items={items} tagProperty={cfg.tagProperty ?? null} />

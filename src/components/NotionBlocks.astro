@@ -8,8 +8,13 @@
  */
 import { renderRichText, toPlain, escapeHtml } from '../lib/richtext.mjs';
 import Self from './NotionBlocks.astro';
+import DatabaseSection from './DatabaseSection.astro';
+import { databases } from '../lib/content.mjs';
 
 const { blocks = [] } = Astro.props;
+
+/** child_database blocks keep their block id, which is the database id. */
+const dbById = (id) => databases.find((d) => d.id === id);
 
 const fileUrl = (node) => node?.file?.url ?? node?.external?.url ?? null;
 
@@ -215,6 +220,13 @@ const calloutIcon = (block) =>
               </table>
             </div>
           );
+
+        case 'child_database': {
+          // Render the database where it actually appears in the page, so the
+          // author's surrounding headings and callouts still introduce it.
+          const db = dbById(b.id);
+          return db ? <DatabaseSection db={db} inline /> : null;
+        }
 
         case 'child_page':
           // Sub-pages are not routed; surface the title so the content is not lost.
