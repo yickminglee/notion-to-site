@@ -14,6 +14,8 @@ import { writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, resolve, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+// Only to tell you which dropped blocks you have already dealt with.
+import { buttons } from '../site.config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '../src/data/notion.json');
@@ -497,26 +499,38 @@ async function main() {
     ).toFixed(1)}s`
   );
 
-  const buttons = unsupported.filter((b) => b.kind === 'button');
+  const buttonBlocks = unsupported.filter((b) => b.kind === 'button');
   const others = unsupported.filter((b) => b.kind !== 'button');
 
-  if (buttons.length) {
+  if (buttonBlocks.length) {
     console.log(
-      `\n  ${buttons.length} Notion button block(s) found. The API returns no label or\n` +
+      `\n  ${buttonBlocks.length} Notion button block(s) found. The API returns no label or\n` +
         '  URL for these, so they render only if you give them one in the `buttons`\n' +
         '  map in site.config.mjs (a `default` entry covers them all):'
     );
-    for (const b of buttons) console.log(`    ${b.id}`);
+    for (const b of buttonBlocks) console.log(`    ${b.id}`);
   }
 
-  if (others.length) {
+  // These are not calls to action, so the `default` button does not apply —
+  // only a named entry counts as handled.
+  const named = (id) => Boolean(buttons?.[id]?.url && buttons?.[id]?.label);
+  const missing = others.filter((b) => !named(b.id));
+  const resolved = others.length - missing.length;
+
+  if (missing.length) {
     console.log(
-      `\n  ${others.length} block(s) the Notion API will not return, so they are\n` +
+      `\n  ${missing.length} block(s) the Notion API will not return, so they are\n` +
         '  MISSING from the site. Give each one a label and URL in the `buttons`\n' +
         '  map in site.config.mjs to render it as a link, or replace it in Notion\n' +
         '  with a block the API supports (a bookmark, or a plain link):'
     );
-    for (const b of others) console.log(`    ${b.kind.padEnd(12)} ${b.id}`);
+    for (const b of missing) console.log(`    ${b.kind.padEnd(12)} ${b.id}`);
+  }
+  if (resolved) {
+    console.log(
+      `\n  ${resolved} unreadable block(s) rendered from the \`buttons\` map in ` +
+        'site.config.mjs.'
+    );
   }
   console.log('');
 }

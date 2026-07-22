@@ -267,17 +267,20 @@ const calloutIcon = (block) =>
           return kids ? <Self blocks={kids} /> : null;
 
         case 'unsupported': {
-          // Notion button blocks arrive with no label or URL. If the site config
-          // supplies a link for this block, render it here — in the button's real
-          // position — otherwise render nothing.
+          // Buttons and Drive embeds both arrive with no label or URL. If the
+          // site config supplies a link for this block, render it here — in the
+          // block's real position — otherwise render nothing.
+          //
+          // A button is a call to action and looks like one; an embed replaced
+          // by a link is not, and styling it as a CTA would misrepresent it.
           const isButton = b.unsupported?.block_type === 'button';
           const cta = isButton ? buttonFor(b.id) : linkFor(b.id);
           if (!cta) return null;
           const external = /^https?:/i.test(cta.url);
           return (
-            <p class="nt-button-wrap">
+            <p class={isButton ? 'nt-button-wrap' : 'nt-file'}>
               <a
-                class="nt-button"
+                class={isButton ? 'nt-button' : null}
                 href={cta.url}
                 rel={external ? 'noopener noreferrer' : null}
               >
