@@ -5,7 +5,7 @@
  */
 import Base from '../layouts/Base.astro';
 import NotionBlocks from '../components/NotionBlocks.astro';
-import { routableRows, childPages, excerpt } from '../lib/content.mjs';
+import { routableRows, childPages, excerpt, faqFromBlocks, faqSchema } from '../lib/content.mjs';
 import { site } from '../../site.config.mjs';
 
 export function getStaticPaths() {
@@ -32,7 +32,7 @@ const description =
  * A database row is a service offering; a sub-page is supporting material
  * (policies, guides) and should not claim to be one.
  */
-const schemas =
+const serviceSchema =
   kind === 'row'
     ? [{
         '@context': 'https://schema.org',
@@ -43,6 +43,16 @@ const schemas =
         provider: { '@type': site.schemaType, name: site.name },
       }]
     : [];
+
+/**
+ * A long guide often carries its own FAQ. It renders as ordinary page content
+ * either way; reading it a second time only adds the structured data, on the
+ * page the questions actually appear on.
+ */
+const schemas = [
+  ...serviceSchema,
+  ...faqSchema(faqFromBlocks(entry.blocks, site.faqHeading ?? undefined)),
+];
 
 const tags =
   kind === 'row'

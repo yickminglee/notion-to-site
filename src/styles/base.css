@@ -184,8 +184,20 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 .db-gallery__link:hover .db-gallery__title { text-decoration: underline; }
 .db-gallery__img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--color-surface); }
 .db-gallery__img--empty { display: grid; place-items: center; font-size: 2.5rem; }
+/* Products and diagrams get cropped by `cover`; opt them into `contain`. */
+.db-gallery__img--contain { object-fit: contain; padding: 0.75rem; }
 .db-gallery__body { padding: 0.9rem 1rem 1.1rem; display: grid; gap: 0.5rem; justify-items: start; }
 .db-gallery__title { margin: 0; font-size: 1.05rem; }
+/* Body text from a property: keep the author's own line breaks. */
+.db-gallery__text {
+  margin: 0; font-size: 0.9rem; line-height: 1.5;
+  color: var(--color-muted); white-space: pre-line;
+}
+.db-gallery__link-out,
+.db-gallery__note {
+  margin: 0; padding: 0 1rem 1.1rem; font-size: 0.85rem;
+  color: var(--color-muted); white-space: pre-line;
+}
 
 /* list */
 .db-list { list-style: none; padding: 0; margin: 1.5rem 0; display: grid; gap: 1.75rem; }

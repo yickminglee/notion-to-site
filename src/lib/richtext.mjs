@@ -9,10 +9,21 @@ export function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
-/** Only allow schemes that are safe to place in href. Blocks javascript: etc. */
-function safeHref(url) {
+/**
+ * Only allow schemes that are safe to place in href. Blocks javascript: etc.
+ * Returns the URL unescaped, for contexts that escape their own attributes —
+ * .astro templates do, and escaping here as well would turn the `&` in a query
+ * string into `&amp;amp;`.
+ */
+export function safeUrl(url) {
   const trimmed = String(url ?? '').trim();
-  return /^(https?:|mailto:|tel:|\/|#)/i.test(trimmed) ? escapeHtml(trimmed) : null;
+  return /^(https?:|mailto:|tel:|\/|#)/i.test(trimmed) ? trimmed : null;
+}
+
+/** As safeUrl, but escaped for interpolation into a raw HTML string. */
+function safeHref(url) {
+  const safe = safeUrl(url);
+  return safe === null ? null : escapeHtml(safe);
 }
 
 export function renderRichText(rich) {

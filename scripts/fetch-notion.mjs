@@ -124,10 +124,12 @@ async function readBlocks(blockId, found, depth = 0) {
       block.__isDatabase = true;
       continue;
     }
-    // Buttons come back with no label or URL, so record their ids — they are
-    // what you key the `buttons` map on in site.config.mjs.
-    if (block.type === 'unsupported' && block.unsupported?.block_type === 'button') {
-      buttonIds.push(block.id);
+    // The API returns some blocks as `unsupported` with nothing but their kind
+    // — no label, URL or children. Record them so the build can report exactly
+    // what it could not read, and so a link can be supplied by block id in the
+    // `buttons` map in site.config.mjs.
+    if (block.type === 'unsupported') {
+      unsupported.push({ id: block.id, kind: block.unsupported?.block_type ?? 'unknown' });
     }
     // Sub-pages get their own page, like database rows. Assign the slug here so
     // it shares the collision check with every other slug on the site.
@@ -161,8 +163,8 @@ async function readBlocks(blockId, found, depth = 0) {
 
 const usedSlugs = new Set();
 
-/** Button block ids seen during the walk, reported at the end of the fetch. */
-const buttonIds = [];
+/** Blocks the API would not return, as {id, kind} — reported after the fetch. */
+const unsupported = [];
 
 /**
  * Title -> clean, keyword-friendly slug. No Notion hex IDs.
@@ -420,6 +422,14 @@ async function main() {
         Object.entries(row.properties ?? {}).map(([k, v]) => [k, readProperty(v)])
       );
 
+      // `files` properties carry the same expiring S3 URLs as blocks do, so a
+      // product photo attached to a row would 404 within the hour unless it is
+      // mirrored alongside everything else.
+      for (const [key, value] of Object.entries(properties)) {
+        if (row.properties?.[key]?.type !== 'files' || !Array.isArray(value)) continue;
+        properties[key] = await Promise.all(value.map((url) => localiseAsset(url)));
+      }
+
       const titleKey = Object.keys(row.properties ?? {}).find(
         (k) => row.properties[k].type === 'title'
       );
@@ -487,13 +497,26 @@ async function main() {
     ).toFixed(1)}s`
   );
 
-  if (buttonIds.length) {
+  const buttons = unsupported.filter((b) => b.kind === 'button');
+  const others = unsupported.filter((b) => b.kind !== 'button');
+
+  if (buttons.length) {
     console.log(
-      `\n  ${buttonIds.length} Notion button block(s) found. The API returns no label or\n` +
+      `\n  ${buttons.length} Notion button block(s) found. The API returns no label or\n` +
         '  URL for these, so they render only if you give them one in the `buttons`\n' +
         '  map in site.config.mjs (a `default` entry covers them all):'
     );
-    for (const id of buttonIds) console.log(`    ${id}`);
+    for (const b of buttons) console.log(`    ${b.id}`);
+  }
+
+  if (others.length) {
+    console.log(
+      `\n  ${others.length} block(s) the Notion API will not return, so they are\n` +
+        '  MISSING from the site. Give each one a label and URL in the `buttons`\n' +
+        '  map in site.config.mjs to render it as a link, or replace it in Notion\n' +
+        '  with a block the API supports (a bookmark, or a plain link):'
+    );
+    for (const b of others) console.log(`    ${b.kind.padEnd(12)} ${b.id}`);
   }
   console.log('');
 }

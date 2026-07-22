@@ -157,6 +157,17 @@ export const databaseLayouts = {
 | `heading` | Overrides the section heading on the index. |
 | `intro` | A standalone answer sentence rendered above the section. |
 
+Gallery rows normally use their Notion **cover** image. When the picture, the blurb or
+the link live in row *properties* instead — as they do for a product list — point the
+layout at them:
+
+| Option | Meaning |
+| --- | --- |
+| `imageProperty` | Files property to use as the picture, instead of the row cover. |
+| `bodyProperty` | Text property shown under the title. Line breaks are kept. |
+| `linkProperty` | Link property. A bare URL becomes a link; anything else (a "copy this into the app" note, say) is shown verbatim, since the words around the URL are usually what makes it work. |
+| `imageFit` | `cover` (default) crops to fill; `contain` shows the whole image — better for product shots. |
+
 `detail` renders each row's **full body** inline. Use it for databases whose value is
 in the body rather than a summary — pricing tiers, policies — where a `list` excerpt
 would show only a lead-in like "Group lesson:". Pair it with `ownPages: false`.
@@ -194,7 +205,7 @@ Built in per page: `<title>`, meta description (first real paragraph of the row 
 `<link rel="canonical">`, Open Graph + Twitter tags, and `sitemap.xml`.
 
 JSON-LD: a site-level `LocalBusiness` (with `areaServed` from `location`) on every page,
-a `Service` schema on each row page, `FAQPage` on the index when `faq` is non-empty, and
+a `Service` schema on each row page, `FAQPage` on any page that has an FAQ, and
 `Review` microdata in the testimonial layout.
 
 For AI citation, lead each section and FAQ answer with a **standalone, self-contained
@@ -217,9 +228,14 @@ so use whichever is natural:
 Collection stops at the next heading of the same or higher level, so the FAQ can sit
 anywhere on the page.
 
-Those toggles render as ordinary page content, and the build also emits `FAQPage`
+Those blocks render as ordinary page content, and the build also emits `FAQPage`
 JSON-LD from them. The FAQ therefore stays editable in Notion like everything else, and
 the structured data follows on the next build.
+
+Each page is read separately: an FAQ inside a sub-page or a database row produces the
+`FAQPage` schema **on that page**, not on the index. Google requires the structured data
+to match what a visitor actually sees on the URL, so a long guide with its own FAQ gets
+its own — and the index claims only the questions it really shows.
 
 Override the heading pattern with `site.faqHeading` for another language or wording
 (e.g. `/^常見問題/`). The `faq` array in `site.config.mjs` is a **fallback only**, for a
@@ -252,6 +268,25 @@ the map empty and buttons render nothing. This is the only place a site adds som
 that is not in the Notion content, and it exists purely to restore a CTA the API drops.
 A plain **link, bookmark, or link inside a callout** in Notion needs none of this and
 renders automatically.
+
+### Other blocks the API won't return
+
+Buttons are not the only blocks Notion returns as `unsupported`. Google Drive embeds do
+the same, and they arrive with no URL either — so they are **missing from the built
+site**. `npm run fetch` names each one and its kind, so a page never loses content
+silently:
+
+```
+  2 block(s) the Notion API will not return, so they are
+  MISSING from the site. …
+    drive        39c4b82e-cbe5-8035-…
+```
+
+Give one a `label` and `url` in the same `buttons` map to render it as a link, or swap
+it in Notion for a block the API does return — a bookmark, or a plain link. Unlike
+buttons, these are **not** covered by the `default` entry: an embedded document is not a
+call to action, so inheriting the site-wide button link would put a "WhatsApp me" where
+a spreadsheet used to be. Each one has to be named explicitly.
 
 ### Favicon
 

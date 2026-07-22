@@ -19,6 +19,19 @@ export function buttonFor(blockId) {
   return cfg;
 }
 
+/**
+ * As buttonFor, but without the `default` fallback.
+ *
+ * Used for the other blocks the API drops (Drive embeds and the like). They are
+ * not calls to action, so inheriting the site-wide button link would put a
+ * "WhatsApp me" where an embedded document used to be. Each has to be named.
+ */
+export function linkFor(blockId) {
+  const cfg = (buttons ?? {})[blockId];
+  if (!cfg?.url || !cfg?.label) return null;
+  return cfg;
+}
+
 export const notionData = data;
 export const page = data.page;
 export const databases = data.databases;
@@ -192,7 +205,9 @@ function findFaq(blocks, pattern) {
       }
     }
 
-    if (block.__children) {
+    // Not into sub-pages: their content lives at another URL, and FAQPage
+    // structured data has to describe the page it is emitted on.
+    if (block.__children && block.type !== 'child_page') {
       const nested = findFaq(block.__children, pattern);
       if (nested.length) return nested;
     }
@@ -200,8 +215,29 @@ function findFaq(blocks, pattern) {
   return [];
 }
 
+/** The FAQ inside an arbitrary block tree — a sub-page, or a database row. */
+export function faqFromBlocks(blocks, pattern = /^(faq|frequently asked)/i) {
+  return findFaq(blocks, pattern);
+}
+
 export function faqFromNotion(pattern = /^(faq|frequently asked)/i) {
   return findFaq(page.blocks, pattern);
+}
+
+/** FAQPage JSON-LD for a set of Q&A pairs, or [] when there are none. */
+export function faqSchema(items) {
+  if (!items?.length) return [];
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: items.map((item) => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      })),
+    },
+  ];
 }
 
 /**

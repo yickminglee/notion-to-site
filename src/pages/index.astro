@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import NotionBlocks from '../components/NotionBlocks.astro';
 import DatabaseSection from '../components/DatabaseSection.astro';
 import Faq from '../components/Faq.astro';
-import { page, visibleDatabases, inlineDatabaseIds, faqFromNotion } from '../lib/content.mjs';
+import { page, visibleDatabases, inlineDatabaseIds, faqFromNotion, faqSchema } from '../lib/content.mjs';
 import { site, faq } from '../../site.config.mjs';
 
 const title = `${site.name} — ${site.tagline}`;
@@ -23,21 +23,10 @@ const notionFaq = faqFromNotion(site.faqHeading ?? undefined);
 const configFaq = notionFaq.length ? [] : (faq ?? []);
 const faqItems = notionFaq.length ? notionFaq : configFaq;
 
-const faqSchema =
-  faqItems.length > 0
-    ? [{
-        '@context': 'https://schema.org',
-        '@type': 'FAQPage',
-        mainEntity: faqItems.map((item) => ({
-          '@type': 'Question',
-          name: item.q,
-          acceptedAnswer: { '@type': 'Answer', text: item.a },
-        })),
-      }]
-    : [];
+const schemas = faqSchema(faqItems);
 ---
 
-<Base title={title} description={description} image={page.cover} schemas={faqSchema}>
+<Base title={title} description={description} image={page.cover} schemas={schemas}>
   <article class:list={['page', page.cover && 'page--covered']}>
     {page.cover && <img class="page__cover" src={page.cover} alt="" fetchpriority="high" />}
 

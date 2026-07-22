@@ -1,15 +1,62 @@
 ---
-/** Gallery — image-led grid. Uses each row's cover image and a tag property. */
-const { items = [], tagProperty = null } = Astro.props;
+/**
+ * Gallery — image-led grid.
+ *
+ * The picture comes from the row's cover by default. Some databases keep it in
+ * a files property instead (a product shot, a headshot), so `imageProperty`
+ * points at that; `bodyProperty` and `linkProperty` do the same for a
+ * description and a link that live in properties rather than in the row body.
+ * All three are optional — without them this is a plain cover grid.
+ */
+import { safeUrl } from '../../lib/richtext.mjs';
+
+const {
+  items = [],
+  tagProperty = null,
+  imageProperty = null,
+  bodyProperty = null,
+  linkProperty = null,
+  /** 'cover' fills the frame and crops; 'contain' shows the whole image. */
+  imageFit = 'cover',
+} = Astro.props;
+
+/** A files property is an array; a cover is a single string. */
+const imageFor = (item) => {
+  if (imageProperty) {
+    const value = item.properties?.[imageProperty];
+    const first = Array.isArray(value) ? value[0] : value;
+    if (first) return first;
+  }
+  return item.cover ?? null;
+};
 ---
 
 <ul class="db-gallery">
   {items.map((item) => {
     const tag = tagProperty ? item.properties?.[tagProperty] : null;
+    const image = imageFor(item);
+    const body = bodyProperty ? item.properties?.[bodyProperty] : null;
+
+    /**
+     * A link property is often not a bare URL — it can be a note with the URL
+     * inside it, such as the "copy this into the app" text a shop gives you.
+     * A plain URL becomes a link; anything else is shown verbatim, because the
+     * words around the URL are usually the part that makes it work.
+     */
+    const rawLink = linkProperty ? item.properties?.[linkProperty] : null;
+    const linkText = typeof rawLink === 'string' ? rawLink.trim() : '';
+    const external = safeUrl(linkText);
+
     const inner = (
       <Fragment>
-        {item.cover ? (
-          <img class="db-gallery__img" src={item.cover} alt="" loading="lazy" decoding="async" />
+        {image ? (
+          <img
+            class:list={['db-gallery__img', imageFit === 'contain' && 'db-gallery__img--contain']}
+            src={image}
+            alt=""
+            loading="lazy"
+            decoding="async"
+          />
         ) : (
           <div class="db-gallery__img db-gallery__img--empty" aria-hidden="true">
             {item.icon && !String(item.icon).startsWith('/') ? item.icon : ''}
@@ -18,6 +65,7 @@ const { items = [], tagProperty = null } = Astro.props;
         <div class="db-gallery__body">
           {tag && <span class="db-tag">{tag}</span>}
           <h3 class="db-gallery__title">{item.title}</h3>
+          {body && <p class="db-gallery__text">{body}</p>}
         </div>
       </Fragment>
     );
@@ -25,6 +73,14 @@ const { items = [], tagProperty = null } = Astro.props;
     return (
       <li class="db-gallery__item">
         {item.href ? <a class="db-gallery__link" href={item.href}>{inner}</a> : inner}
+
+        {external ? (
+          <p class="db-gallery__link-out">
+            <a href={external} rel="noopener nofollow">{linkProperty}</a>
+          </p>
+        ) : (
+          linkText && <p class="db-gallery__note">{linkText}</p>
+        )}
       </li>
     );
   })}

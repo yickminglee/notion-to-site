@@ -37,6 +37,13 @@ const sectionId = heading
   <section class:list={['db-section', inline && 'db-section--inline']} aria-labelledby={sectionId ? `db-${sectionId}` : null}>
     {heading && <h2 id={`db-${sectionId}`} class="db-section__heading">{heading}</h2>}
     {cfg.intro && <p class="db-section__intro">{cfg.intro}</p>}
-    <Layout items={items} tagProperty={cfg.tagProperty ?? null} />
+    <Layout
+      items={items}
+      tagProperty={cfg.tagProperty ?? null}
+      imageProperty={cfg.imageProperty ?? null}
+      bodyProperty={cfg.bodyProperty ?? null}
+      linkProperty={cfg.linkProperty ?? null}
+      imageFit={cfg.imageFit ?? 'cover'}
+    />
   </section>
 )}
