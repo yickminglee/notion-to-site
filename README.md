@@ -263,6 +263,33 @@ Railway dashboard → the service → **Deployments** → **⋯** on the latest 
 Or `railway up` from the repo. Either way the full pipeline reruns and pulls current
 Notion content. Pushing to the connected branch also triggers a deploy.
 
+### Troubleshooting
+
+**Build fails with `EBUSY: resource busy or locked, rmdir '/app/node_modules/.cache'`**
+Your `buildCommand` runs `npm ci`. Nixpacks already installs in its own phase, and the
+second `npm ci` tries to delete `node_modules` while Railway has `node_modules/.cache`
+mounted as a build cache. Set `buildCommand` to `npm run build` alone.
+
+**Build fails with `API token is invalid`**
+`NOTION_TOKEN` is wrong — most often the `ntn_xxxx…` placeholder from `.env.example`
+pasted in verbatim. A real token is ~50 characters. Also confirm the integration was
+added to the page under **⋯ → Connections**.
+
+**Deploy succeeds, logs show `serving dist/`, but the URL returns 502
+"Application failed to respond"**
+The domain's **target port** doesn't match the port the app listens on. This happens when
+the domain is generated before the first successful deploy: Railway has no running process
+to detect, so it guesses. Check it:
+
+```bash
+railway status --json | grep -o '"targetPort":[0-9]*'
+```
+
+Compare that with the port in the deploy log (`serving dist/ on http://0.0.0.0:<port>`).
+If they differ, either change the target port under **Settings → Networking**, or set a
+`PORT` service variable to the target port — `server.mjs` honours `PORT`, so the app moves
+to meet the proxy.
+
 ### Which origin am I building against?
 
 | `DOMAIN` | `RAILWAY_PUBLIC_DOMAIN` | Origin used |
