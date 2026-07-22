@@ -63,6 +63,14 @@ const tags =
 
     <p class="page__breadcrumb"><a href="/">← {site.name}</a></p>
 
+    {entry.icon && (
+      String(entry.icon).startsWith('/') || String(entry.icon).startsWith('http') ? (
+        <img class="page__icon" src={entry.icon} alt="" width="60" height="60" />
+      ) : (
+        <span class="page__icon page__icon--emoji" aria-hidden="true">{entry.icon}</span>
+      )
+    )}
+
     <h1 class="page__title">{entry.title}</h1>
 
     {tags.length > 0 && (

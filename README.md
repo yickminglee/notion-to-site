@@ -176,7 +176,8 @@ that dilute the site in search rather than helping it.
 
 Each database row **and each Notion sub-page** becomes `/<slug>/`, rendering its full
 body. Sub-pages (`child_page` blocks) are linked from wherever they appear in the parent
-page, and are included in `sitemap.xml`. They get no `Service` schema — a policy or guide
+page — with their Notion icon — and are included in `sitemap.xml`. A `child_page` block
+carries only a title, so each sub-page is fetched separately for its icon and cover. They get no `Service` schema — a policy or guide
 page is supporting material, not a service offering. No Notion hex IDs appear in URLs.
 
 - A **`Slug`** text property wins when present and non-empty.

@@ -237,9 +237,24 @@ const calloutIcon = (block) =>
         case 'child_page': {
           // Sub-pages get their own page — link to it rather than dropping the body.
           const sub = childPageIndex.get(b.id);
+          if (!sub) return <p class="nt-childpage">{b.child_page?.title}</p>;
+
+          const subIcon = sub.icon ? String(sub.icon) : null;
+          const iconIsImage = subIcon
+            ? subIcon.startsWith('/') || subIcon.startsWith('http')
+            : false;
+
           return (
             <p class="nt-childpage">
-              {sub ? <a href={`/${sub.slug}/`}>{sub.title}</a> : b.child_page?.title}
+              <a href={`/${sub.slug}/`}>
+                {subIcon &&
+                  (iconIsImage ? (
+                    <img class="nt-childpage-icon" src={subIcon} alt="" width="20" height="20" loading="lazy" />
+                  ) : (
+                    <span class="nt-childpage-icon" aria-hidden="true">{subIcon}</span>
+                  ))}
+                <span>{sub.title}</span>
+              </a>
             </p>
           );
         }

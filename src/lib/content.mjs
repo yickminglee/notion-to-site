@@ -76,6 +76,8 @@ export const childPages = (() => {
           id: block.id,
           title: block.child_page?.title ?? '',
           slug: block.__slug,
+          icon: block.__icon ?? null,
+          cover: block.__cover ?? null,
           blocks: block.__children ?? [],
         });
       }

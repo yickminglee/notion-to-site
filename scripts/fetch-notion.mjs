@@ -133,6 +133,20 @@ async function readBlocks(blockId, found, depth = 0) {
     // it shares the collision check with every other slug on the site.
     if (block.type === 'child_page') {
       block.__slug = slugify(block.child_page?.title ?? '', block.id);
+
+      // A child_page block carries only a title — its icon and cover live on the
+      // page object, so fetch them separately or the sub-page loses its icon.
+      try {
+        const sub = await api(`pages.retrieve ${block.id}`, () =>
+          notion.pages.retrieve({ page_id: block.id })
+        );
+        block.__icon = sub.icon?.emoji ?? (await localiseAsset(fileUrl(sub.icon)));
+        block.__cover = await localiseAsset(fileUrl(sub.cover));
+      } catch {
+        // A sub-page without retrievable metadata still renders, just unadorned.
+        block.__icon = null;
+        block.__cover = null;
+      }
     }
     if (block.has_children) {
       block.__children = await readBlocks(block.id, found, depth + 1);
