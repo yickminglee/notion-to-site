@@ -150,8 +150,12 @@ export const databaseLayouts = {
 
 | Option | Meaning |
 | --- | --- |
-| `layout` | `gallery` · `list` · `cards` · `table` · `testimonial` · `none` |
+| `layout` | `gallery` · `list` · `cards` · `table` · `testimonial` · `detail` · `none` |
 | `ownPages` | `true` (default) — every row gets its own page at `/<slug>/`.<br>`false` — rows render inline on the index only. |
+
+`detail` renders each row's **full body** inline. Use it for databases whose value is
+in the body rather than a summary — pricing tiers, policies — where a `list` excerpt
+would show only a lead-in like "Group lesson:". Pair it with `ownPages: false`.
 | `tagProperty` | Property shown as a pill (gallery layout). |
 | `heading` | Overrides the section heading on the index. |
 | `intro` | A standalone answer sentence rendered above the section. |

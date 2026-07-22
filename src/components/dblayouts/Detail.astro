@@ -1,0 +1,25 @@
+---
+/**
+ * Detail — renders each row's title and full body inline on the index.
+ *
+ * For databases whose value is in the body rather than a summary (pricing
+ * tiers, policies, packages), where a title-plus-excerpt list would show only
+ * a lead-in like "Group lesson:" and hide the actual content.
+ * Pair with ownPages: false so the content lives in exactly one place.
+ */
+import NotionBlocks from '../NotionBlocks.astro';
+const { items = [] } = Astro.props;
+---
+
+<div class="db-detail">
+  {items.map((item) => (
+    <section class="db-detail__item">
+      <h3 class="db-detail__title">
+        {item.href ? <a href={item.href}>{item.title}</a> : item.title}
+      </h3>
+      <div class="db-detail__body">
+        <NotionBlocks blocks={item.blocks} />
+      </div>
+    </section>
+  ))}
+</div>

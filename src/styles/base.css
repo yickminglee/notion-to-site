@@ -237,3 +237,14 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 .faq__list { display: grid; gap: 1.5rem; margin: 1.5rem 0 0; }
 .faq__q { font-weight: 700; font-size: 1.05rem; }
 .faq__a { margin: 0.35rem 0 0; color: var(--color-muted); max-width: var(--measure); }
+
+/* detail */
+.db-detail { display: grid; gap: 2rem; margin: 1.5rem 0; }
+.db-detail__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+.db-detail__title { margin: 0 0 0.5rem; font-size: 1.2rem; }
+.db-detail__body > :first-child { margin-top: 0; }
+.db-detail__body > :last-child { margin-bottom: 0; }

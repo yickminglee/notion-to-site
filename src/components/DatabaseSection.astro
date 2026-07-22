@@ -8,12 +8,13 @@ import List from './dblayouts/List.astro';
 import Cards from './dblayouts/Cards.astro';
 import Table from './dblayouts/Table.astro';
 import Testimonial from './dblayouts/Testimonial.astro';
+import Detail from './dblayouts/Detail.astro';
 import { layoutFor } from '../lib/content.mjs';
 
 const { db } = Astro.props;
 const cfg = layoutFor(db.title);
 
-const LAYOUTS = { gallery: Gallery, list: List, cards: Cards, table: Table, testimonial: Testimonial };
+const LAYOUTS = { gallery: Gallery, list: List, cards: Cards, table: Table, testimonial: Testimonial, detail: Detail };
 const Layout = LAYOUTS[cfg.layout] ?? List;
 
 // Attach hrefs only for databases whose rows are routed.
