@@ -1,11 +1,41 @@
 ---
 import Seo from '../components/Seo.astro';
 import { site } from '../../site.config.mjs';
+import { page } from '../lib/content.mjs';
 import '../styles/base.css';
 // Loaded second so per-site overrides win over the base tokens.
 import '../styles/theme.css';
 
 const { title, description, image, schemas } = Astro.props;
+
+/**
+ * Favicon from the Notion page icon, so the browser tab matches the page.
+ * The icon is either an uploaded image (already mirrored into
+ * /notion-assets by the fetch step) or an emoji, which is wrapped in an
+ * inline SVG so it still works as a favicon.
+ */
+const icon = page.icon ? String(page.icon) : null;
+const isImageIcon = icon ? icon.startsWith('/') || icon.startsWith('http') : false;
+
+// Prefer the downscaled copies the fetch step generates — a raw Notion icon is
+// often ~1000px and several hundred KB, far too heavy for a tab icon.
+const favSmall = page.favicons?.small ?? icon;
+const favLarge = page.favicons?.large ?? icon;
+
+const iconType = page.favicons?.small
+  ? 'image/png'
+  : isImageIcon
+    ? { '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp' }[
+        icon.slice(icon.lastIndexOf('.')).toLowerCase()
+      ] ?? null
+    : null;
+
+const emojiFavicon =
+  icon && !isImageIcon
+    ? `data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="52" font-size="88" text-anchor="middle" dominant-baseline="central">${icon}</text></svg>`
+      )}`
+    : null;
 ---
 
 <!doctype html>
@@ -14,6 +44,15 @@ const { title, description, image, schemas } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+
+    {isImageIcon && (
+      <Fragment>
+        <link rel="icon" href={favSmall} type={iconType} />
+        <link rel="apple-touch-icon" href={favLarge} />
+      </Fragment>
+    )}
+    {emojiFavicon && <link rel="icon" href={emojiFavicon} type="image/svg+xml" />}
+
     <Seo title={title} description={description} image={image} schemas={schemas} />
   </head>
   <body>

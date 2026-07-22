@@ -274,6 +274,41 @@ async function localiseRichText(rich) {
   }
 }
 
+/**
+ * Build favicon-sized copies of the page icon.
+ *
+ * Notion icons are full-resolution uploads — often ~1000px and hundreds of KB.
+ * Pointing <link rel="icon"> straight at one makes every page load drag the
+ * whole file down just to paint a 16px tab icon, so emit small copies instead.
+ * Returns null on any failure; the caller then falls back to the full-size icon.
+ */
+async function makeFavicons(localIconPath) {
+  if (!localIconPath?.startsWith(ASSET_BASE)) return null;
+
+  try {
+    const { default: sharp } = await import('sharp');
+    const source = resolve(ASSET_DIR, localIconPath.slice(ASSET_BASE.length + 1));
+
+    const sizes = { small: 32, large: 180 };
+    const out = {};
+
+    for (const [key, size] of Object.entries(sizes)) {
+      const buf = await sharp(source)
+        .resize(size, size, { fit: 'cover' })
+        .png({ compressionLevel: 9 })
+        .toBuffer();
+
+      const name = `favicon-${size}.png`;
+      await writeFile(resolve(ASSET_DIR, name), buf);
+      out[key] = `${ASSET_BASE}/${name}`;
+    }
+    return out;
+  } catch (err) {
+    console.warn(`  favicon generation skipped (${err.message})`);
+    return null;
+  }
+}
+
 /** Walk a block tree and mirror every embedded Notion-hosted asset. */
 async function localiseBlocks(blocks) {
   for (const block of blocks ?? []) {
@@ -406,13 +441,18 @@ async function main() {
 
   await localiseBlocks(rootBlocks);
 
+  const pageIcon = rootPage.icon?.emoji ?? (await localiseAsset(fileUrl(rootPage.icon)));
+
   const payload = {
     generatedAt: new Date().toISOString(),
     page: {
       id: NOTION_PAGE_ID,
       title: rootTitle,
       cover: await localiseAsset(fileUrl(rootPage.cover)),
-      icon: rootPage.icon?.emoji ?? (await localiseAsset(fileUrl(rootPage.icon))),
+      icon: pageIcon,
+      // Small copies of the icon for <link rel="icon">; null for emoji icons,
+      // which the layout renders as an inline SVG instead.
+      favicons: await makeFavicons(pageIcon),
       blocks: rootBlocks,
     },
     databases,

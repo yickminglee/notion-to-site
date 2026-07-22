@@ -55,6 +55,7 @@ and is about 200 lines — extend it when you hit a block type you need.
 | `astro` | 7.1.3 |
 | `@notionhq/client` | 5.23.2 |
 | `@astrojs/sitemap` | 3.7.3 |
+| `sharp` | 0.35.3 (favicon downscaling) |
 | Node | >= 20.12 (uses built-in `process.loadEnvFile`) |
 
 Exact versions are pinned in `package.json` (no `^`) and locked in `package-lock.json`.
@@ -223,6 +224,14 @@ the map empty and buttons render nothing. This is the only place a site adds som
 that is not in the Notion content, and it exists purely to restore a CTA the API drops.
 A plain **link, bookmark, or link inside a callout** in Notion needs none of this and
 renders automatically.
+
+### Favicon
+
+The browser-tab icon comes from the Notion page icon automatically. An uploaded image is
+downscaled at build time to a 32px favicon and a 180px apple-touch-icon — a raw Notion
+icon is often ~1000px and several hundred KB, far too heavy to serve on every page load.
+An emoji page icon is wrapped in an inline SVG data URI instead, so it works as a favicon
+with no file at all. No page icon means no favicon tags are emitted.
 
 ### Images
 
