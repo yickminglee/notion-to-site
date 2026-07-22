@@ -29,7 +29,9 @@ export function renderRichText(rich) {
         return `<img class="nt-emoji" src="${src}" alt="${escapeHtml(emoji.name ?? '')}" loading="lazy" decoding="async" />`;
       }
 
-      let html = escapeHtml(token.plain_text);
+      // Notion stores soft line breaks (shift+enter) as \n inside rich text.
+      // HTML collapses those to spaces, so make them explicit.
+      let html = escapeHtml(token.plain_text).replace(/\n/g, '<br />');
       const a = token.annotations ?? {};
 
       if (a.code) html = `<code>${html}</code>`;

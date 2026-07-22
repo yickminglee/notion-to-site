@@ -262,3 +262,14 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 /* Databases rendered in place sit inside the content flow, so they need less
    separation than a standalone section appended after the body. */
 .db-section--inline { margin-top: 1.25rem; }
+
+/* Page cover + icon, mirroring how Notion presents a page header. */
+.page__icon {
+  display: block;
+  width: 78px;
+  height: 78px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.page__icon--emoji { font-size: 64px; line-height: 1; width: auto; height: auto; }
+.page--covered .page__icon { margin-top: -0.72em; margin-left: 0.07em; }

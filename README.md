@@ -309,6 +309,12 @@ to meet the proxy.
    properties (colours, fonts, spacing, radius) and add site-specific rules. It loads
    after `base.css` so your overrides win, and it is the only file a restyle touches:
    styling is fully isolated from the pipeline and the content.
+
+   The default theme is **"notion"**: it reproduces Notion's own look — the warm
+   near-black `rgb(55,53,47)`, the Inter-led sans stack, 10px callout radius, 46px
+   column gap, and the full block-colour palette, all taken from Notion's HTML export.
+   A site built from a Notion page looks like that page out of the box. Replace the
+   file wholesale for a site that should look like something else.
 5. Add `.env` locally; on Railway add `NOTION_TOKEN` and `NOTION_PAGE_ID` only.
 6. Deploy (step 1), generate a domain and redeploy (step 2). Add a custom domain later
    (step 3) — that is the only time you set `DOMAIN` by hand.

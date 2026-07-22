@@ -28,7 +28,17 @@ const faqSchema =
 ---
 
 <Base title={title} description={description} image={page.cover} schemas={faqSchema}>
-  <article class="page">
+  <article class:list={['page', page.cover && 'page--covered']}>
+    {page.cover && <img class="page__cover" src={page.cover} alt="" fetchpriority="high" />}
+
+    {page.icon && (
+      String(page.icon).startsWith('/') || String(page.icon).startsWith('http') ? (
+        <img class="page__icon" src={page.icon} alt="" width="78" height="78" />
+      ) : (
+        <span class="page__icon page__icon--emoji" aria-hidden="true">{page.icon}</span>
+      )
+    )}
+
     <h1 class="page__title">{site.name}</h1>
     <p class="page__tagline">{site.tagline}</p>
 

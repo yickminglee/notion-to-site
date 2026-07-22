@@ -1,14 +1,287 @@
 /* ------------------------------------------------------------------ *
- * PER-SITE THEME — this is the file you edit to restyle a site.
+ * THEME — "notion"
  *
- * Loaded after base.css, so anything set here wins. Styling is isolated
- * from the pipeline: changing this file never touches content or fetch
- * logic. Override the custom properties, and add site-specific rules
- * (hero treatment, header, section accents) below.
+ * Makes the built site look like the Notion page it came from. Values are
+ * taken from Notion's own HTML export: the warm near-black rgb(55,53,47),
+ * the Inter-led sans stack, 10px callout radius, 46px column gap, and the
+ * full block-colour palette.
+ *
+ * This is the template's default theme — a Notion-sourced site should look
+ * like Notion unless a site deliberately overrides it. Restyling touches
+ * this file only, never the pipeline or the content.
  * ------------------------------------------------------------------ */
 
 :root {
-  /* --font-body: 'Your Font', ui-sans-serif, system-ui, sans-serif; */
-  /* --color-accent: #2563eb; */
-  /* --radius: 12px; */
+  --font-body: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI Variable Display', 'Segoe UI', Helvetica, 'Apple Color Emoji',
+    Arial, sans-serif;
+  --font-heading: var(--font-body);
+  --font-mono: 'SFMono-Regular', Menlo, Consolas, 'PT Mono', 'Liberation Mono',
+    Courier, monospace;
+
+  /* Notion's text colours. */
+  --notion-fg: rgb(55, 53, 47);
+  --notion-muted: rgba(55, 53, 47, 0.65);
+  --notion-gray: rgba(125, 122, 117, 1);
+  --notion-rule: rgba(55, 53, 47, 0.09);
+  --notion-border: rgba(55, 53, 47, 0.16);
+
+  --color-bg: #fff;
+  --color-fg: var(--notion-fg);
+  --color-muted: var(--notion-muted);
+  --color-accent: var(--notion-fg);
+  --color-accent-contrast: #fff;
+  --color-surface: rgba(247, 246, 243, 1);
+  --color-border: var(--notion-rule);
+
+  --radius: 10px;
+  --max-width: 900px;
+  --measure: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --notion-fg: rgba(255, 255, 255, 0.9);
+    --notion-muted: rgba(255, 255, 255, 0.56);
+    --notion-gray: rgba(155, 155, 155, 1);
+    --notion-rule: rgba(255, 255, 255, 0.13);
+    --notion-border: rgba(255, 255, 255, 0.2);
+
+    --color-bg: rgb(25, 25, 25);
+    --color-fg: var(--notion-fg);
+    --color-muted: var(--notion-muted);
+    --color-accent: var(--notion-fg);
+    --color-accent-contrast: rgb(25, 25, 25);
+    --color-surface: rgb(37, 37, 37);
+    --color-border: var(--notion-rule);
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Type — Notion's metrics
+ * ------------------------------------------------------------------ */
+body {
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.page__title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+  margin-bottom: 0.25em;
+}
+.page__tagline {
+  font-size: 1.05rem;
+  color: var(--color-muted);
+  margin-bottom: 2em;
+}
+
+/* Notion sizes headings relative to the page title. */
+.nt-h1 { font-size: 1.875rem; margin-top: 2rem; }
+.nt-h2 { font-size: 1.5rem;   margin-top: 1.75rem; }
+.nt-h3 { font-size: 1.25rem;  margin-top: 1.5rem; }
+
+/* Links: inherit colour, underline — exactly as Notion exports them. */
+.page__body a,
+.db-detail__body a,
+.db-testimonials__quote a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: var(--notion-border);
+}
+.page__body a:hover,
+.db-detail__body a:hover {
+  text-decoration-color: currentColor;
+}
+/* Whole-tile links are marked by their border, not an underline. */
+.page__body a.db-gallery__link,
+.page__body a.db-cards__link {
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Shell — narrow, centred, chrome-free like a Notion page
+ * ------------------------------------------------------------------ */
+.site-header {
+  max-width: var(--max-width);
+  border-bottom: none;
+  padding-top: 1.5rem;
+}
+.site-header__brand {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+.site-footer {
+  border-top: 1px solid var(--notion-rule);
+  font-size: 0.875rem;
+}
+
+.page { max-width: var(--max-width); }
+.page__body { max-width: none; }
+.page__body :is(p, ul, ol) { max-width: none; }
+.page__cover {
+  max-height: 30vh;
+  object-fit: cover;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+/* Notion overlaps the icon onto the bottom of the cover and rounds it. */
+.page__icon { border-radius: 8px; margin-bottom: 0.5rem; }
+.page--covered .page__icon {
+  position: relative;
+  margin-top: -46px;
+  border-radius: 50%;
+  border: 4px solid var(--color-bg);
+  width: 84px;
+  height: 84px;
+}
+.page--covered .page__title { margin-top: 0.4em; }
+
+/* ------------------------------------------------------------------ *
+ * Blocks
+ * ------------------------------------------------------------------ */
+.nt-callout {
+  border-radius: 10px;
+  padding: 1rem;
+  border: none;
+  background: var(--color-surface);
+  align-items: flex-start;
+}
+.nt-callout-icon { font-size: 1.2em; line-height: 1.5; }
+
+.nt-columns { gap: 46px; }
+.nt-column { min-width: 0; }
+
+.nt-quote {
+  font-size: 1em;
+  margin: 1em 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--notion-fg);
+  color: inherit;
+}
+
+.nt-divider {
+  border: none;
+  border-bottom: 1px solid var(--notion-rule);
+  margin: 2rem 0;
+}
+
+.nt-code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  border: none;
+  border-radius: var(--radius);
+}
+code { font-family: var(--font-mono); font-size: 0.9em; }
+
+.nt-table, .db-table { font-size: 0.875rem; }
+.nt-table :is(th, td), .db-table :is(th, td) {
+  border: 1px solid var(--notion-border);
+}
+.nt-table th, .db-table th { background: var(--color-surface); font-weight: 600; }
+
+.nt-toggle summary { font-weight: 400; }
+
+.nt-todo input { accent-color: rgb(35, 131, 226); }
+
+.nt-figure img { border-radius: 3px; }
+
+/* ------------------------------------------------------------------ *
+ * Notion block colours — background and text, from the export palette
+ * ------------------------------------------------------------------ */
+.nt-bg-gray_background   { background: rgba(240, 239, 237, 1); }
+.nt-bg-brown_background  { background: rgba(245, 237, 233, 1); }
+.nt-bg-orange_background { background: rgba(251, 235, 222, 1); }
+.nt-bg-yellow_background { background: rgba(249, 243, 220, 1); }
+.nt-bg-green_background  { background: rgba(232, 241, 236, 1); }
+.nt-bg-blue_background   { background: rgba(229, 242, 252, 1); }
+.nt-bg-purple_background { background: rgba(243, 235, 249, 1); }
+.nt-bg-pink_background   { background: rgba(250, 233, 241, 1); }
+.nt-bg-red_background    { background: rgba(252, 233, 231, 1); }
+
+.nt-c-gray   { color: var(--notion-gray); }
+.nt-c-brown  { color: rgba(159, 118, 90, 1); }
+.nt-c-orange { color: rgba(210, 123, 45, 1); }
+.nt-c-yellow { color: rgba(203, 148, 52, 1); }
+.nt-c-green  { color: rgba(80, 148, 110, 1); }
+.nt-c-blue   { color: rgba(56, 125, 201, 1); }
+.nt-c-purple { color: rgba(154, 107, 180, 1); }
+.nt-c-pink   { color: rgba(193, 76, 138, 1); }
+.nt-c-red    { color: rgba(207, 81, 72, 1); }
+
+@media (prefers-color-scheme: dark) {
+  .nt-bg-gray_background   { background: rgba(255, 255, 255, 0.06); }
+  .nt-bg-brown_background  { background: rgba(184, 138, 120, 0.15); }
+  .nt-bg-orange_background { background: rgba(233, 126, 65, 0.15); }
+  .nt-bg-yellow_background { background: rgba(202, 152, 73, 0.15); }
+  .nt-bg-green_background  { background: rgba(82, 158, 114, 0.15); }
+  .nt-bg-blue_background   { background: rgba(82, 138, 224, 0.15); }
+  .nt-bg-purple_background { background: rgba(154, 109, 215, 0.15); }
+  .nt-bg-pink_background   { background: rgba(216, 93, 165, 0.15); }
+  .nt-bg-red_background    { background: rgba(225, 90, 79, 0.15); }
+
+  .nt-c-brown  { color: rgba(186, 133, 111, 1); }
+  .nt-c-orange { color: rgba(199, 125, 72, 1); }
+  .nt-c-yellow { color: rgba(202, 152, 73, 1); }
+  .nt-c-green  { color: rgba(82, 158, 114, 1); }
+  .nt-c-blue   { color: rgba(94, 135, 201, 1); }
+  .nt-c-purple { color: rgba(157, 104, 211, 1); }
+  .nt-c-pink   { color: rgba(209, 87, 150, 1); }
+  .nt-c-red    { color: rgba(223, 84, 82, 1); }
+}
+
+/* ------------------------------------------------------------------ *
+ * Database layouts — quiet, so they read as part of the page
+ * ------------------------------------------------------------------ */
+.db-section__heading { font-size: 1.5rem; font-weight: 600; }
+.db-section__intro { color: var(--color-muted); }
+
+.db-tag {
+  background: rgba(55, 53, 47, 0.06);
+  border: none;
+  color: var(--color-muted);
+  font-weight: 500;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+.db-gallery__item,
+.db-cards__item,
+.db-detail__item,
+.db-testimonials__item {
+  border: 1px solid var(--notion-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  box-shadow: none;
+}
+.db-cards__item { background: var(--color-surface); border-color: transparent; }
+
+.db-gallery__item { transition: background 0.1s ease; }
+@media (hover: hover) {
+  .db-gallery__item:hover { background: var(--color-surface); }
+}
+
+.db-list__item { border-bottom: 1px solid var(--notion-rule); }
+
+.db-testimonials__quote { font-style: normal; }
+
+.faq__q { font-weight: 600; }
+.faq__a { color: var(--color-muted); }
+
+@media (prefers-color-scheme: dark) {
+  .db-tag { background: rgba(255, 255, 255, 0.08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .db-gallery__item { transition: none; }
 }
