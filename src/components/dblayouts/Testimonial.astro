@@ -1,0 +1,21 @@
+---
+/**
+ * Testimonial — quote cards. Renders each row's body as the quote and the row
+ * title as the attribution, wrapped in Review microdata for rich results.
+ */
+import NotionBlocks from '../NotionBlocks.astro';
+const { items = [] } = Astro.props;
+---
+
+<ul class="db-testimonials">
+  {items.map((item) => (
+    <li class="db-testimonials__item" itemscope itemtype="https://schema.org/Review">
+      <blockquote class="db-testimonials__quote" itemprop="reviewBody">
+        <NotionBlocks blocks={item.blocks} />
+      </blockquote>
+      <p class="db-testimonials__cite" itemprop="author" itemscope itemtype="https://schema.org/Person">
+        <span itemprop="name">{item.title}</span>
+      </p>
+    </li>
+  ))}
+</ul>

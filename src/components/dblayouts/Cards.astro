@@ -1,0 +1,25 @@
+---
+/** Cards — compact equal-weight tiles. Good for short label-like rows. */
+import { excerpt } from '../../lib/content.mjs';
+const { items = [] } = Astro.props;
+---
+
+<ul class="db-cards">
+  {items.map((item) => {
+    const summary = excerpt(item.blocks, 120);
+    const inner = (
+      <Fragment>
+        {item.icon && !String(item.icon).startsWith('/') && (
+          <span class="db-cards__icon" aria-hidden="true">{item.icon}</span>
+        )}
+        <h3 class="db-cards__title">{item.title}</h3>
+        {summary && <p class="db-cards__excerpt">{summary}</p>}
+      </Fragment>
+    );
+    return (
+      <li class="db-cards__item">
+        {item.href ? <a class="db-cards__link" href={item.href}>{inner}</a> : inner}
+      </li>
+    );
+  })}
+</ul>

@@ -1,0 +1,38 @@
+---
+/**
+ * Renders one discovered database using the layout assigned in the
+ * database-to-layout map. Rows link to their own page only when ownPages is on.
+ */
+import Gallery from './dblayouts/Gallery.astro';
+import List from './dblayouts/List.astro';
+import Cards from './dblayouts/Cards.astro';
+import Table from './dblayouts/Table.astro';
+import Testimonial from './dblayouts/Testimonial.astro';
+import { layoutFor } from '../lib/content.mjs';
+
+const { db } = Astro.props;
+const cfg = layoutFor(db.title);
+
+const LAYOUTS = { gallery: Gallery, list: List, cards: Cards, table: Table, testimonial: Testimonial };
+const Layout = LAYOUTS[cfg.layout] ?? List;
+
+// Attach hrefs only for databases whose rows are routed.
+const items = db.items.map((item) => ({
+  ...item,
+  href: cfg.ownPages ? `/${item.slug}/` : null,
+}));
+
+const heading = cfg.heading ?? db.title;
+const sectionId = String(heading || 'section')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-+|-+$/g, '');
+---
+
+{items.length > 0 && (
+  <section class="db-section" aria-labelledby={`db-${sectionId}`}>
+    {heading && <h2 id={`db-${sectionId}`} class="db-section__heading">{heading}</h2>}
+    {cfg.intro && <p class="db-section__intro">{cfg.intro}</p>}
+    <Layout items={items} tagProperty={cfg.tagProperty ?? null} />
+  </section>
+)}

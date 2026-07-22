@@ -1,0 +1,22 @@
+{
+  "name": "notion-to-site",
+  "version": "0.1.0",
+  "description": "Static, SEO- and AI-crawler-readable sites built from a Notion page. Template repo.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12.0"
+  },
+  "scripts": {
+    "fetch": "node scripts/fetch-notion.mjs",
+    "dev": "npm run fetch && astro dev",
+    "build": "npm run fetch && astro build",
+    "preview": "astro preview",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.3",
+    "@notionhq/client": "5.23.2",
+    "astro": "7.1.3"
+  }
+}

@@ -1,0 +1,19 @@
+---
+/** List — text-led rows with a short excerpt. Best for service descriptions. */
+import { excerpt } from '../../lib/content.mjs';
+const { items = [] } = Astro.props;
+---
+
+<ul class="db-list">
+  {items.map((item) => {
+    const summary = excerpt(item.blocks, 180);
+    return (
+      <li class="db-list__item">
+        <h3 class="db-list__title">
+          {item.href ? <a href={item.href}>{item.title}</a> : item.title}
+        </h3>
+        {summary && <p class="db-list__excerpt">{summary}</p>}
+      </li>
+    );
+  })}
+</ul>

@@ -1,0 +1,32 @@
+---
+import Seo from '../components/Seo.astro';
+import { site } from '../../site.config.mjs';
+import '../styles/base.css';
+
+const { title, description, image, schemas } = Astro.props;
+---
+
+<!doctype html>
+<html lang={site.lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <Seo title={title} description={description} image={image} schemas={schemas} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <a class="site-header__brand" href="/">{site.name}</a>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <p>{site.name} — {site.location}</p>
+    </footer>
+  </body>
+</html>

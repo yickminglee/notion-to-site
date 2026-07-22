@@ -1,0 +1,234 @@
+---
+/**
+ * Recursive Notion block -> HTML renderer.
+ *
+ * Emits real semantic HTML at build time (no client JS), so crawlers and AI
+ * engines read the full content. Consecutive list items are grouped into a
+ * single <ul>/<ol> rather than one list per item.
+ */
+import { renderRichText, toPlain, escapeHtml } from '../lib/richtext.mjs';
+import Self from './NotionBlocks.astro';
+
+const { blocks = [] } = Astro.props;
+
+const fileUrl = (node) => node?.file?.url ?? node?.external?.url ?? null;
+
+/** Group runs of bulleted/numbered items so lists nest correctly. */
+function group(list) {
+  const out = [];
+  for (const block of list) {
+    const t = block.type;
+    const listType =
+      t === 'bulleted_list_item' ? 'ul' : t === 'numbered_list_item' ? 'ol' : null;
+
+    const prev = out.at(-1);
+    if (listType && prev?.kind === 'list' && prev.tag === listType) {
+      prev.items.push(block);
+    } else if (listType) {
+      out.push({ kind: 'list', tag: listType, items: [block] });
+    } else {
+      out.push({ kind: 'block', block });
+    }
+  }
+  return out;
+}
+
+const groups = group(blocks.filter((b) => b && b.type !== 'unsupported'));
+
+const calloutIcon = (block) =>
+  block.callout?.icon?.emoji ?? fileUrl(block.callout?.icon) ?? null;
+---
+
+{groups.map((g) =>
+  g.kind === 'list' ? (
+    <Fragment>
+      {g.tag === 'ul' ? (
+        <ul class="nt-list">
+          {g.items.map((item) => (
+            <li>
+              <Fragment set:html={renderRichText(item.bulleted_list_item.rich_text)} />
+              {item.__children && <Self blocks={item.__children} />}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <ol class="nt-list">
+          {g.items.map((item) => (
+            <li>
+              <Fragment set:html={renderRichText(item.numbered_list_item.rich_text)} />
+              {item.__children && <Self blocks={item.__children} />}
+            </li>
+          ))}
+        </ol>
+      )}
+    </Fragment>
+  ) : (
+    (() => {
+      const b = g.block;
+      const kids = b.__children;
+
+      switch (b.type) {
+        case 'paragraph': {
+          const html = renderRichText(b.paragraph.rich_text);
+          // Notion uses empty paragraphs as spacers; drop them.
+          if (!html.trim() && !kids) return null;
+          return (
+            <Fragment>
+              {html.trim() && <p set:html={html} />}
+              {kids && <Self blocks={kids} />}
+            </Fragment>
+          );
+        }
+
+        case 'heading_1':
+          return <h2 class="nt-h1" set:html={renderRichText(b.heading_1.rich_text)} />;
+        case 'heading_2':
+          return <h3 class="nt-h2" set:html={renderRichText(b.heading_2.rich_text)} />;
+        case 'heading_3':
+          return <h4 class="nt-h3" set:html={renderRichText(b.heading_3.rich_text)} />;
+
+        case 'callout': {
+          const icon = calloutIcon(b);
+          const color = b.callout.color ?? 'default';
+          return (
+            <aside class={`nt-callout nt-bg-${color}`}>
+              {icon && (
+                icon.startsWith('/') || icon.startsWith('http') ? (
+                  <img class="nt-callout-icon" src={icon} alt="" width="24" height="24" loading="lazy" />
+                ) : (
+                  <span class="nt-callout-icon" aria-hidden="true">{icon}</span>
+                )
+              )}
+              <div class="nt-callout-body">
+                <Fragment set:html={renderRichText(b.callout.rich_text)} />
+                {kids && <Self blocks={kids} />}
+              </div>
+            </aside>
+          );
+        }
+
+        case 'quote':
+          return (
+            <blockquote class="nt-quote">
+              <Fragment set:html={renderRichText(b.quote.rich_text)} />
+              {kids && <Self blocks={kids} />}
+            </blockquote>
+          );
+
+        case 'column_list':
+          return <div class="nt-columns">{kids && <Self blocks={kids} />}</div>;
+
+        case 'column': {
+          // Notion gives a 0-1 ratio; fall back to equal flex when absent.
+          const ratio = b.column?.width_ratio;
+          const style = ratio ? `flex: ${ratio} 1 0;` : 'flex: 1 1 0;';
+          return (
+            <div class="nt-column" style={style}>
+              {kids && <Self blocks={kids} />}
+            </div>
+          );
+        }
+
+        case 'image': {
+          const src = fileUrl(b.image);
+          if (!src) return null;
+          const caption = toPlain(b.image.caption);
+          return (
+            <figure class="nt-figure">
+              <img src={src} alt={caption} loading="lazy" decoding="async" />
+              {caption && <figcaption set:html={renderRichText(b.image.caption)} />}
+            </figure>
+          );
+        }
+
+        case 'video':
+        case 'embed':
+        case 'pdf':
+        case 'file': {
+          const src = fileUrl(b[b.type]) ?? b[b.type]?.url;
+          if (!src) return null;
+          return (
+            <p class="nt-file">
+              <a href={src} rel="noopener noreferrer">{toPlain(b[b.type].caption) || src}</a>
+            </p>
+          );
+        }
+
+        case 'bookmark':
+        case 'link_preview': {
+          const url = b[b.type]?.url;
+          if (!url) return null;
+          return (
+            <p class="nt-bookmark">
+              <a href={url} rel="noopener noreferrer">{toPlain(b[b.type]?.caption) || url}</a>
+            </p>
+          );
+        }
+
+        case 'toggle':
+          return (
+            <details class="nt-toggle">
+              <summary set:html={renderRichText(b.toggle.rich_text)} />
+              {kids && <Self blocks={kids} />}
+            </details>
+          );
+
+        case 'to_do':
+          return (
+            <p class="nt-todo">
+              <input type="checkbox" checked={b.to_do.checked} disabled />
+              <Fragment set:html={renderRichText(b.to_do.rich_text)} />
+            </p>
+          );
+
+        case 'code':
+          return (
+            <pre class="nt-code"><code set:html={escapeHtml(toPlain(b.code.rich_text))} /></pre>
+          );
+
+        case 'divider':
+          return <hr class="nt-divider" />;
+
+        case 'table':
+          return (
+            <div class="nt-table-wrap">
+              <table class="nt-table">
+                {kids && (
+                  <tbody>
+                    {kids.map((row, i) => {
+                      const cells = row.table_row?.cells ?? [];
+                      const isHeader = i === 0 && b.table.has_column_header;
+                      return (
+                        <tr>
+                          {cells.map((cell) =>
+                            isHeader ? (
+                              <th scope="col" set:html={renderRichText(cell)} />
+                            ) : (
+                              <td set:html={renderRichText(cell)} />
+                            )
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                )}
+              </table>
+            </div>
+          );
+
+        case 'child_page':
+          // Sub-pages are not routed; surface the title so the content is not lost.
+          return <p class="nt-childpage">{b.child_page?.title}</p>;
+
+        case 'synced_block':
+        case 'table_of_contents':
+        case 'breadcrumb':
+          return kids ? <Self blocks={kids} /> : null;
+
+        default:
+          // Unknown/unsupported (incl. Notion button blocks, which carry no API payload).
+          return kids ? <Self blocks={kids} /> : null;
+      }
+    })()
+  )
+)}

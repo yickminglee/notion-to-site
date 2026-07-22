@@ -1,0 +1,43 @@
+---
+/** Per-page meta, canonical, Open Graph, and JSON-LD. */
+import { site } from '../../site.config.mjs';
+
+const {
+  title,
+  description,
+  image = null,
+  /** Extra JSON-LD objects to emit alongside the site-level LocalBusiness. */
+  schemas = [],
+} = Astro.props;
+
+const origin = (import.meta.env.DOMAIN ?? Astro.site?.origin ?? '').replace(/\/$/, '');
+const canonical = origin ? new URL(Astro.url.pathname, `${origin}/`).href : Astro.url.pathname;
+const absoluteImage = image && origin && image.startsWith('/') ? `${origin}${image}` : image;
+
+const localBusiness = {
+  '@context': 'https://schema.org',
+  '@type': site.schemaType,
+  name: site.name,
+  description: site.tagline,
+  areaServed: { '@type': 'Place', name: site.location },
+  ...(origin ? { url: `${origin}/` } : {}),
+};
+
+const jsonLd = [localBusiness, ...schemas];
+---
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:site_name" content={site.name} />
+{absoluteImage && <meta property="og:image" content={absoluteImage} />}
+<meta name="twitter:card" content={absoluteImage ? 'summary_large_image' : 'summary'} />
+
+{jsonLd.map((schema) => (
+  <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+))}

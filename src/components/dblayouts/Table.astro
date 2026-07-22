@@ -1,0 +1,40 @@
+---
+/**
+ * Table — tabular view for structured rows (rates, schedules).
+ * Columns are derived from the row properties, minus the view-control ones.
+ */
+const { items = [] } = Astro.props;
+
+const HIDDEN = new Set(['is_hidden', 'view_order', 'Slug']);
+
+const columns = [
+  ...new Set(
+    items.flatMap((item) =>
+      Object.entries(item.properties ?? {})
+        .filter(([key, value]) => !HIDDEN.has(key) && value !== null && value !== '')
+        .map(([key]) => key)
+    )
+  ),
+];
+
+const cell = (value) => (Array.isArray(value) ? value.join(', ') : value ?? '');
+---
+
+<div class="db-table-wrap">
+  <table class="db-table">
+    <thead>
+      <tr>{columns.map((col) => <th scope="col">{col}</th>)}</tr>
+    </thead>
+    <tbody>
+      {items.map((item) => (
+        <tr>
+          {columns.map((col, i) => (
+            <td>
+              {i === 0 && item.href ? <a href={item.href}>{cell(item.properties?.[col])}</a> : cell(item.properties?.[col])}
+            </td>
+          ))}
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>

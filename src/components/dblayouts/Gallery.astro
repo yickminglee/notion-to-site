@@ -1,0 +1,31 @@
+---
+/** Gallery — image-led grid. Uses each row's cover image and a tag property. */
+const { items = [], tagProperty = null } = Astro.props;
+---
+
+<ul class="db-gallery">
+  {items.map((item) => {
+    const tag = tagProperty ? item.properties?.[tagProperty] : null;
+    const inner = (
+      <Fragment>
+        {item.cover ? (
+          <img class="db-gallery__img" src={item.cover} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <div class="db-gallery__img db-gallery__img--empty" aria-hidden="true">
+            {item.icon && !String(item.icon).startsWith('/') ? item.icon : ''}
+          </div>
+        )}
+        <div class="db-gallery__body">
+          {tag && <span class="db-tag">{tag}</span>}
+          <h3 class="db-gallery__title">{item.title}</h3>
+        </div>
+      </Fragment>
+    );
+
+    return (
+      <li class="db-gallery__item">
+        {item.href ? <a class="db-gallery__link" href={item.href}>{inner}</a> : inner}
+      </li>
+    );
+  })}
+</ul>

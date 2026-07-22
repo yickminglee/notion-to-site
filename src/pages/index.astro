@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import NotionBlocks from '../components/NotionBlocks.astro';
+import DatabaseSection from '../components/DatabaseSection.astro';
+import Faq from '../components/Faq.astro';
+import { page, visibleDatabases } from '../lib/content.mjs';
+import { site, faq } from '../../site.config.mjs';
+
+const title = `${site.name} — ${site.tagline}`;
+const description = `${site.tagline} Based in ${site.location}.`;
+
+const faqSchema =
+  faq.length > 0
+    ? [{
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faq.map((item) => ({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a },
+        })),
+      }]
+    : [];
+---
+
+<Base title={title} description={description} image={page.cover} schemas={faqSchema}>
+  <article class="page">
+    <h1 class="page__title">{site.name}</h1>
+    <p class="page__tagline">{site.tagline}</p>
+
+    <div class="page__body">
+      <NotionBlocks blocks={page.blocks} />
+    </div>
+
+    {visibleDatabases.map((db) => <DatabaseSection db={db} />)}
+
+    <Faq items={faq} />
+  </article>
+</Base>

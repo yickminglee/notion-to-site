@@ -1,0 +1,21 @@
+---
+/**
+ * FAQ block. Renders a semantic <dl> (always in the HTML, not behind JS) so
+ * crawlers and AI engines can lift each answer as a standalone quote.
+ */
+const { items = [], heading = 'Frequently asked questions' } = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class="faq" aria-labelledby="faq-heading">
+    <h2 id="faq-heading">{heading}</h2>
+    <dl class="faq__list">
+      {items.map((item) => (
+        <div class="faq__item">
+          <dt class="faq__q">{item.q}</dt>
+          <dd class="faq__a">{item.a}</dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+)}

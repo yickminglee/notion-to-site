@@ -1,0 +1,53 @@
+---
+/** One page per database row, at a clean keyword-friendly URL. */
+import Base from '../layouts/Base.astro';
+import NotionBlocks from '../components/NotionBlocks.astro';
+import { routableRows, excerpt } from '../lib/content.mjs';
+import { site } from '../../site.config.mjs';
+
+export function getStaticPaths() {
+  return routableRows.map((row) => ({ params: { slug: row.slug }, props: { row } }));
+}
+
+const { row } = Astro.props;
+
+// Specific service name in the title beats a generic one for search and citation.
+const title = `${row.title} — ${site.name}`;
+const description =
+  excerpt(row.blocks, 155) || `${row.title} in ${site.location}. ${site.tagline}`;
+
+const schemas = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: row.title,
+    serviceType: row.title,
+    areaServed: { '@type': 'Place', name: site.location },
+    provider: { '@type': site.schemaType, name: site.name },
+  },
+];
+
+const tags = Object.entries(row.properties ?? {})
+  .filter(([key, value]) => !['is_hidden', 'view_order', 'Slug'].includes(key) && typeof value === 'string' && value)
+  .filter(([, value]) => value !== row.title);
+---
+
+<Base title={title} description={description} image={row.cover} schemas={schemas}>
+  <article class="page page--row">
+    {row.cover && <img class="page__cover" src={row.cover} alt="" />}
+
+    <p class="page__breadcrumb"><a href="/">← {site.name}</a></p>
+
+    <h1 class="page__title">{row.title}</h1>
+
+    {tags.length > 0 && (
+      <p class="page__tags">
+        {tags.map(([, value]) => <span class="db-tag">{value}</span>)}
+      </p>
+    )}
+
+    <div class="page__body">
+      <NotionBlocks blocks={row.blocks} />
+    </div>
+  </article>
+</Base>

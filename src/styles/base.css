@@ -1,0 +1,239 @@
+/* ------------------------------------------------------------------ *
+ * Theme tokens. Override these in a per-site theme block below the
+ * import to restyle a site without touching content or the pipeline.
+ * ------------------------------------------------------------------ */
+:root {
+  --font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-heading: var(--font-body);
+
+  --color-bg: #ffffff;
+  --color-fg: #16181d;
+  --color-muted: #5b6472;
+  --color-accent: #2563eb;
+  --color-accent-contrast: #ffffff;
+  --color-surface: #f5f7fa;
+  --color-border: #e2e6ec;
+
+  --radius: 12px;
+  --measure: 68ch;
+  --space: 1rem;
+  --max-width: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f1216;
+    --color-fg: #e8eaed;
+    --color-muted: #9aa4b2;
+    --color-surface: #171b21;
+    --color-border: #262c35;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-fg);
+  background: var(--color-bg);
+  line-height: 1.65;
+  -webkit-text-size-adjust: 100%;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--color-accent); }
+
+h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: balance; }
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+.skip-link:focus {
+  left: var(--space);
+  top: var(--space);
+  z-index: 10;
+  background: var(--color-bg);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+}
+
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ *
+ * Shell
+ * ------------------------------------------------------------------ */
+.site-header, .site-footer {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding: var(--space) 1.25rem;
+}
+.site-header__brand { font-weight: 700; text-decoration: none; color: var(--color-fg); }
+.site-footer { color: var(--color-muted); border-top: 1px solid var(--color-border); margin-top: 4rem; }
+
+.page {
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding: 1rem 1.25rem 3rem;
+}
+.page__title { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.25rem; }
+.page__tagline { font-size: 1.15rem; color: var(--color-muted); margin-top: 0; max-width: var(--measure); }
+.page__cover { width: 100%; border-radius: var(--radius); margin-bottom: 1.5rem; aspect-ratio: 3/1; object-fit: cover; }
+.page__breadcrumb { margin: 0 0 0.5rem; }
+.page__body { max-width: var(--measure); }
+.page__body :is(p, ul, ol) { max-width: var(--measure); }
+.page__tags { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0; }
+
+/* ------------------------------------------------------------------ *
+ * Notion blocks
+ * ------------------------------------------------------------------ */
+.nt-h1 { font-size: 1.75rem; margin-top: 2.5rem; }
+.nt-h2 { font-size: 1.35rem; margin-top: 2rem; }
+.nt-h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+
+.nt-callout {
+  display: flex;
+  gap: 0.75rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  margin: 1.25rem 0;
+}
+.nt-callout-icon { flex: 0 0 auto; font-size: 1.25rem; line-height: 1.4; }
+.nt-callout-body { min-width: 0; flex: 1; }
+.nt-callout-body > :first-child { margin-top: 0; }
+.nt-callout-body > :last-child { margin-bottom: 0; }
+
+.nt-columns { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1.25rem 0; }
+.nt-column { min-width: min(100%, 16rem); }
+
+.nt-quote {
+  margin: 1.25rem 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--color-accent);
+  color: var(--color-muted);
+}
+
+.nt-figure { margin: 1.5rem 0; }
+.nt-figure img { border-radius: var(--radius); }
+.nt-figure figcaption { font-size: 0.875rem; color: var(--color-muted); margin-top: 0.5rem; }
+
+.nt-toggle { margin: 0.75rem 0; }
+.nt-toggle summary { cursor: pointer; font-weight: 600; }
+
+.nt-divider { border: 0; border-top: 1px solid var(--color-border); margin: 2.5rem 0; }
+
+.nt-code {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.nt-table-wrap, .db-table-wrap { overflow-x: auto; margin: 1.25rem 0; }
+.nt-table, .db-table { border-collapse: collapse; width: 100%; min-width: 30rem; }
+.nt-table :is(th, td), .db-table :is(th, td) {
+  border: 1px solid var(--color-border);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+.nt-table th, .db-table th { background: var(--color-surface); }
+
+/* Notion text colours — only the ones that carry meaning in these sites. */
+.nt-c-gray, .nt-c-gray_background { color: var(--color-muted); }
+
+/* ------------------------------------------------------------------ *
+ * Database layouts
+ * ------------------------------------------------------------------ */
+.db-section { margin-top: 3.5rem; }
+.db-section__heading { font-size: 1.6rem; }
+.db-section__intro { color: var(--color-muted); max-width: var(--measure); }
+
+.db-tag {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+}
+
+/* gallery */
+.db-gallery {
+  list-style: none; padding: 0; margin: 1.5rem 0;
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
+.db-gallery__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.db-gallery__link { text-decoration: none; color: inherit; display: block; height: 100%; }
+.db-gallery__link:hover .db-gallery__title { text-decoration: underline; }
+.db-gallery__img { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: var(--color-surface); }
+.db-gallery__img--empty { display: grid; place-items: center; font-size: 2.5rem; }
+.db-gallery__body { padding: 0.9rem 1rem 1.1rem; display: grid; gap: 0.5rem; justify-items: start; }
+.db-gallery__title { margin: 0; font-size: 1.05rem; }
+
+/* list */
+.db-list { list-style: none; padding: 0; margin: 1.5rem 0; display: grid; gap: 1.75rem; }
+.db-list__item { border-bottom: 1px solid var(--color-border); padding-bottom: 1.5rem; }
+.db-list__item:last-child { border-bottom: 0; }
+.db-list__title { margin: 0 0 0.4rem; font-size: 1.25rem; }
+.db-list__title a { text-decoration: none; }
+.db-list__title a:hover { text-decoration: underline; }
+.db-list__excerpt { margin: 0; color: var(--color-muted); max-width: var(--measure); }
+
+/* cards */
+.db-cards {
+  list-style: none; padding: 0; margin: 1.5rem 0;
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+}
+.db-cards__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  background: var(--color-surface);
+}
+.db-cards__link { text-decoration: none; color: inherit; }
+.db-cards__icon { font-size: 1.5rem; }
+.db-cards__title { margin: 0.25rem 0 0.4rem; font-size: 1.02rem; }
+.db-cards__excerpt { margin: 0; font-size: 0.92rem; color: var(--color-muted); }
+
+/* testimonial */
+.db-testimonials {
+  list-style: none; padding: 0; margin: 1.5rem 0;
+  display: grid; gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+.db-testimonials__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  background: var(--color-surface);
+}
+.db-testimonials__quote { margin: 0; font-style: italic; }
+.db-testimonials__quote > :first-child { margin-top: 0; }
+.db-testimonials__cite { margin: 0.75rem 0 0; font-weight: 600; font-style: normal; }
+.db-testimonials__cite::before { content: '— '; }
+
+/* ------------------------------------------------------------------ *
+ * FAQ
+ * ------------------------------------------------------------------ */
+.faq { margin-top: 3.5rem; }
+.faq__list { display: grid; gap: 1.5rem; margin: 1.5rem 0 0; }
+.faq__q { font-weight: 700; font-size: 1.05rem; }
+.faq__a { margin: 0.35rem 0 0; color: var(--color-muted); max-width: var(--measure); }
