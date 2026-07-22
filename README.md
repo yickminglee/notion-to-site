@@ -84,11 +84,11 @@ cp .env.example .env
 
 Fill in `.env` — this file is gitignored and must never be committed:
 
-| Variable | What it is |
-| --- | --- |
-| `NOTION_TOKEN` | The integration token. Secret. |
-| `NOTION_PAGE_ID` | The page to build from (32 hex chars, with or without dashes). |
-| `DOMAIN` | Public origin, no trailing slash. Drives canonical URLs and the sitemap. |
+| Variable | Required | What it is |
+| --- | --- | --- |
+| `NOTION_TOKEN` | yes | The integration token. Secret. |
+| `NOTION_PAGE_ID` | yes | The page to build from (32 hex chars, with or without dashes). |
+| `DOMAIN` | no | Public origin, no trailing slash. Drives canonical URLs and the sitemap. On Railway, leave it unset — you have no domain until after the first deploy, and Railway's own `RAILWAY_PUBLIC_DOMAIN` is picked up automatically. Set it only for a custom domain. See [Deploy on Railway](#deploy-on-railway). |
 
 Everything else lives in [`site.config.mjs`](site.config.mjs): `name`, `tagline`,
 `location`, `schemaType`, `theme`, the FAQ, and the database-to-layout map.
@@ -219,26 +219,55 @@ images are left pointing at their original URL.
 
 ## Deploy on Railway
 
+You do not have a domain until after the first deploy, so these are **three separate
+steps in this order**. Don't try to set `DOMAIN` up front — step 2 gives you one.
+
+### Step 1 — First deploy (no domain yet)
+
 1. **New Project** → **Deploy from GitHub repo** → pick your site repo.
-2. **Variables** → add `NOTION_TOKEN`, `NOTION_PAGE_ID`, `DOMAIN`.
+2. **Variables** → add **only these two**:
+   - `NOTION_TOKEN`
+   - `NOTION_PAGE_ID`
+
+   Leave `DOMAIN` unset. The build warns that canonical URLs point at a placeholder —
+   that is expected here and fixed by step 2.
 3. Build and start commands come from [`railway.json`](railway.json):
    - build: `npm ci && npm run build`
    - start: `npm start` (binds Railway's `$PORT`)
-4. **Settings → Networking → Generate Domain** for a `*.up.railway.app` URL.
-   Set `DOMAIN` to it and redeploy so canonical URLs and the sitemap match.
 
-### Custom domain
+The site is now live but has no public URL yet.
 
-**Settings → Networking → Custom Domain**, enter the hostname, then add the `CNAME`
-Railway shows you at your DNS provider. Once it resolves, update `DOMAIN` to the custom
-origin and redeploy — canonical tags and `sitemap.xml` are baked in at build time and
-will otherwise still point at the old origin.
+### Step 2 — Generate a domain, then redeploy
+
+1. **Settings → Networking → Generate Domain** → a `*.up.railway.app` URL.
+2. **Redeploy** (see below).
+
+That second deploy is what makes the URLs correct. Railway sets `RAILWAY_PUBLIC_DOMAIN`
+once the domain exists, and the build reads it automatically — **you do not need to set
+`DOMAIN` yourself.** Canonical tags and `sitemap.xml` are baked in at build time, so
+they only pick up the new origin on the redeploy, not the moment you generate it.
+
+### Step 3 — Custom domain (optional, later)
+
+1. **Settings → Networking → Custom Domain** → enter the hostname.
+2. Add the `CNAME` Railway shows you at your DNS provider and wait for it to resolve.
+3. **Now** set `DOMAIN` to the custom origin (e.g. `https://swim.example.com`) — an
+   explicit `DOMAIN` overrides `RAILWAY_PUBLIC_DOMAIN`.
+4. **Redeploy**, or canonicals and the sitemap keep pointing at the `railway.app` origin.
 
 ### Manual redeploy
 
 Railway dashboard → the service → **Deployments** → **⋯** on the latest → **Redeploy**.
 Or `railway up` from the repo. Either way the full pipeline reruns and pulls current
 Notion content. Pushing to the connected branch also triggers a deploy.
+
+### Which origin am I building against?
+
+| `DOMAIN` | `RAILWAY_PUBLIC_DOMAIN` | Origin used |
+| --- | --- | --- |
+| unset | unset | `https://example.com` + a build warning (first deploy) |
+| unset | set by Railway | `https://<your>.up.railway.app` |
+| set | either | `DOMAIN` wins |
 
 ---
 
@@ -251,8 +280,9 @@ Notion content. Pushing to the connected branch also triggers a deploy.
    properties (colours, fonts, spacing, radius) and add site-specific rules. It loads
    after `base.css` so your overrides win, and it is the only file a restyle touches:
    styling is fully isolated from the pipeline and the content.
-5. Add `.env` locally, then the same three variables in Railway.
-6. Deploy, generate a domain, set `DOMAIN`, redeploy.
+5. Add `.env` locally; on Railway add `NOTION_TOKEN` and `NOTION_PAGE_ID` only.
+6. Deploy (step 1), generate a domain and redeploy (step 2). Add a custom domain later
+   (step 3) — that is the only time you set `DOMAIN` by hand.
 
 ---
 

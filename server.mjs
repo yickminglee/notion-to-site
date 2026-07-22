@@ -9,7 +9,11 @@ import { fileURLToPath } from 'node:url';
 
 // Anchored to this file, not the process cwd, so `node server.mjs` works from anywhere.
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), 'dist');
-const PORT = Number(process.env.PORT) || 4321;
+
+// Railway supplies PORT; --port is for running locally alongside the dev server.
+const portFlag = process.argv.indexOf('--port');
+const PORT =
+  (portFlag !== -1 && Number(process.argv[portFlag + 1])) || Number(process.env.PORT) || 4321;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
