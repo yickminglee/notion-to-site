@@ -6,8 +6,18 @@
 // Statically imported so Vite inlines the snapshot at bundle time. If this file
 // is missing the build fails fast — run `npm run fetch` (npm run build does it).
 import data from '../data/notion.json';
-import { databaseLayouts } from '../../site.config.mjs';
+import { databaseLayouts, buttons } from '../../site.config.mjs';
 import { toPlain } from './richtext.mjs';
+
+/**
+ * Resolve a Notion button block to a link, or null when unconfigured.
+ * See the `buttons` block in site.config.mjs for why this is needed.
+ */
+export function buttonFor(blockId) {
+  const cfg = (buttons ?? {})[blockId] ?? (buttons ?? {}).default;
+  if (!cfg?.url || !cfg?.label) return null;
+  return cfg;
+}
 
 export const notionData = data;
 export const page = data.page;

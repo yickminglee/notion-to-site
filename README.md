@@ -203,10 +203,26 @@ headings rather than generic ones.
 The template renders what's in Notion and nothing more. It never injects a booking
 button or a contact form.
 
-> **Notion button blocks are not returned by the Notion API.** They come back as
-> `unsupported` and cannot be rendered. Any call-to-action you need on the site must be
-> a **link, bookmark, or link inside a callout** in Notion — those render fine. Check
-> your page for button blocks before assuming a CTA survived the build.
+> **Notion button blocks carry no label or URL.** The API returns
+> `{ block_type: "button" }` and nothing else — no text, no link, no children. Notion's
+> own HTML export drops them too, so there is no automated source for the link.
+
+Because the API *does* return each button's block id and position, a button can still be
+restored by supplying its link once in the `buttons` map in `site.config.mjs` — it then
+renders as a real anchor in its original place in the page:
+
+```js
+export const buttons = {
+  default: { label: 'WhatsApp me', url: 'https://wa.me/85200000000' },
+  '60c4b82e-…': { label: 'Book a trial', url: 'https://wa.me/…' }, // overrides default
+};
+```
+
+`npm run fetch` lists every button id it finds, so you can key overrides off them. Leave
+the map empty and buttons render nothing. This is the only place a site adds something
+that is not in the Notion content, and it exists purely to restore a CTA the API drops.
+A plain **link, bookmark, or link inside a callout** in Notion needs none of this and
+renders automatically.
 
 ### Images
 

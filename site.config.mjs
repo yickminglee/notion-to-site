@@ -49,6 +49,30 @@ export const databaseLayouts = {
 };
 
 /**
+ * NOTION BUTTON BLOCKS
+ * --------------------
+ * The Notion API returns button blocks as `unsupported` with no label, URL or
+ * children — the payload is literally `{ block_type: "button" }`. Notion's own
+ * HTML export drops them as well, so there is no automated source for the link.
+ *
+ * The API does give each button's block id and its position in the page, so a
+ * button renders in exactly the right place once its link is supplied here.
+ *
+ *   default  — used for every button that has no specific entry.
+ *   <blockId>— overrides `default` for that one button.
+ *
+ * Find the ids in the fetch output: `npm run fetch` lists every button it saw.
+ * Leave this empty and buttons render nothing, exactly as before.
+ *
+ * This is the one place the site adds something not in the Notion content, and
+ * it exists only to restore a CTA that Notion's own API drops — not to invent one.
+ */
+export const buttons = {
+  // default: { label: 'Message me on WhatsApp', url: 'https://wa.me/85200000000' },
+  // 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee': { label: 'Book a trial', url: 'https://wa.me/…' },
+};
+
+/**
  * FAQ — rendered as an accessible <dl> plus FAQPage JSON-LD.
  * Lead each answer with a standalone sentence that makes sense quoted alone.
  */

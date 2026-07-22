@@ -9,7 +9,7 @@
 import { renderRichText, toPlain, escapeHtml } from '../lib/richtext.mjs';
 import Self from './NotionBlocks.astro';
 import DatabaseSection from './DatabaseSection.astro';
-import { databases } from '../lib/content.mjs';
+import { databases, buttonFor } from '../lib/content.mjs';
 
 const { blocks = [] } = Astro.props;
 
@@ -38,7 +38,13 @@ function group(list) {
   return out;
 }
 
-const groups = group(blocks.filter((b) => b && b.type !== 'unsupported'));
+// Drop unsupported blocks except buttons, which the switch can still render
+// from site config (see buttonFor).
+const groups = group(
+  blocks.filter(
+    (b) => b && (b.type !== 'unsupported' || b.unsupported?.block_type === 'button')
+  )
+);
 
 const calloutIcon = (block) =>
   block.callout?.icon?.emoji ?? fileUrl(block.callout?.icon) ?? null;
@@ -237,8 +243,28 @@ const calloutIcon = (block) =>
         case 'breadcrumb':
           return kids ? <Self blocks={kids} /> : null;
 
+        case 'unsupported': {
+          // Notion button blocks arrive with no label or URL. If the site config
+          // supplies a link for this block, render it here — in the button's real
+          // position — otherwise render nothing.
+          if (b.unsupported?.block_type !== 'button') return null;
+          const cta = buttonFor(b.id);
+          if (!cta) return null;
+          const external = /^https?:/i.test(cta.url);
+          return (
+            <p class="nt-button-wrap">
+              <a
+                class="nt-button"
+                href={cta.url}
+                rel={external ? 'noopener noreferrer' : null}
+              >
+                {cta.label}
+              </a>
+            </p>
+          );
+        }
+
         default:
-          // Unknown/unsupported (incl. Notion button blocks, which carry no API payload).
           return kids ? <Self blocks={kids} /> : null;
       }
     })()

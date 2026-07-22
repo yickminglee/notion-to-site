@@ -196,6 +196,27 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
 
 .nt-figure img { border-radius: 3px; }
 
+/* Buttons: Notion's own blue call-to-action. Uses Notion's darker hover blue
+   as the base — its default rgb(35,131,226) gives white text only 3.88:1,
+   under the 4.5:1 WCAG AA needs at this size. This one is 4.68:1. */
+.nt-button {
+  background: rgb(0, 117, 211);
+  color: #fff;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.9rem;
+  text-decoration: none;
+}
+/* Must out-specify `.page__body a { color: inherit }` above, or the label
+   inherits the dark body colour and sits at ~2.5:1 on the blue. */
+.page__body a.nt-button,
+.db-detail__body a.nt-button {
+  color: #fff;
+  text-decoration: none;
+}
+.nt-button:hover { background: rgb(13, 99, 181); opacity: 1; }
+
 /* ------------------------------------------------------------------ *
  * Notion block colours — background and text, from the export palette
  * ------------------------------------------------------------------ */

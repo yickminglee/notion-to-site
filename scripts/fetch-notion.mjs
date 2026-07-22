@@ -124,6 +124,11 @@ async function readBlocks(blockId, found, depth = 0) {
       block.__isDatabase = true;
       continue;
     }
+    // Buttons come back with no label or URL, so record their ids — they are
+    // what you key the `buttons` map on in site.config.mjs.
+    if (block.type === 'unsupported' && block.unsupported?.block_type === 'button') {
+      buttonIds.push(block.id);
+    }
     if (block.has_children) {
       block.__children = await readBlocks(block.id, found, depth + 1);
     }
@@ -136,6 +141,9 @@ async function readBlocks(blockId, found, depth = 0) {
  * ------------------------------------------------------------------ */
 
 const usedSlugs = new Set();
+
+/** Button block ids seen during the walk, reported at the end of the fetch. */
+const buttonIds = [];
 
 /**
  * Title -> clean, keyword-friendly slug. No Notion hex IDs.
@@ -417,8 +425,18 @@ async function main() {
   console.log(
     `\n  wrote ${OUT}\n  ${databases.length} database(s), ${rowCount} row(s), ${(
       (Date.now() - started) / 1000
-    ).toFixed(1)}s\n`
+    ).toFixed(1)}s`
   );
+
+  if (buttonIds.length) {
+    console.log(
+      `\n  ${buttonIds.length} Notion button block(s) found. The API returns no label or\n` +
+        '  URL for these, so they render only if you give them one in the `buttons`\n' +
+        '  map in site.config.mjs (a `default` entry covers them all):'
+    );
+    for (const id of buttonIds) console.log(`    ${id}`);
+  }
+  console.log('');
 }
 
 main().catch((err) => {

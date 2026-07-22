@@ -273,3 +273,17 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 }
 .page__icon--emoji { font-size: 64px; line-height: 1; width: auto; height: auto; }
 .page--covered .page__icon { margin-top: -0.72em; margin-left: 0.07em; }
+
+/* Notion button blocks, restored from site config (see `buttons` there). */
+.nt-button-wrap { margin: 1rem 0; }
+.nt-button {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.3;
+}
+.nt-button:hover { opacity: 0.88; }
