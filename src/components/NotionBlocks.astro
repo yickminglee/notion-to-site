@@ -277,6 +277,33 @@ const calloutIcon = (block) =>
           const cta = isButton ? buttonFor(b.id) : linkFor(b.id);
           if (!cta) return null;
           const external = /^https?:/i.test(cta.url);
+
+          /**
+           * `embed: true` restores a live embed rather than a link — for a
+           * sheet whose current value is the point, not its contents.
+           *
+           * The link stays underneath: an iframe's contents belong to the
+           * other origin, so nothing inside it is part of this page for a
+           * crawler, and it is the only thing left if framing is blocked.
+           */
+          if (!isButton && cta.embed) {
+            return (
+              <figure class="nt-embed">
+                <iframe
+                  src={cta.url}
+                  title={cta.label}
+                  loading="lazy"
+                  height={cta.height ?? 420}
+                  referrerpolicy="no-referrer"
+                  sandbox="allow-scripts allow-same-origin allow-popups"
+                />
+                <figcaption>
+                  <a href={cta.url} rel="noopener noreferrer">{cta.label}</a>
+                </figcaption>
+              </figure>
+            );
+          }
+
           return (
             <p class={isButton ? 'nt-button-wrap' : 'nt-file'}>
               <a

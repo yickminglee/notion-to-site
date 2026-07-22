@@ -173,22 +173,40 @@ function readFaqSection(section) {
   }
   if (subheads.length) return subheads;
 
-  // 3. Paragraph pairs — a paragraph ending in "?" is a question, and every
-  //    paragraph after it belongs to its answer until the next question.
+  // 3. Paragraphs. A question is a line ending in "?" — either its own
+  //    paragraph, with the answer in the paragraphs that follow, or the first
+  //    line of a paragraph whose remaining lines are the answer. Notion makes
+  //    the second easy to type (shift-return), so both are common.
   const items = [];
   let current = null;
+  const flush = () => {
+    if (current?.a.length) items.push({ q: current.q, a: current.a.join(' ') });
+    current = null;
+  };
+
   for (const block of section) {
     const text = toPlain(block[block.type]?.rich_text).trim();
     if (!text) continue;
+
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
     // Handles "?" plus the full-width "？" used in Chinese text.
-    if (/[?？]$/.test(text)) {
-      if (current?.a.length) items.push({ q: current.q, a: current.a.join(' ') });
+    const isQuestion = (line) => /[?？]$/.test(line);
+
+    // Whole Q&A in one paragraph: question first, answer on the lines below.
+    if (isQuestion(lines[0]) && lines.length > 1) {
+      flush();
+      items.push({ q: lines[0], a: lines.slice(1).join(' ') });
+      continue;
+    }
+
+    if (isQuestion(text)) {
+      flush();
       current = { q: text, a: [] };
     } else if (current) {
       current.a.push(text);
     }
   }
-  if (current?.a.length) items.push({ q: current.q, a: current.a.join(' ') });
+  flush();
   return items;
 }
 

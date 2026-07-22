@@ -224,6 +224,7 @@ so use whichever is natural:
 | **Toggles** (tidiest) | the toggle title | the toggle's contents |
 | **Sub-headings** | the heading | the blocks under it |
 | **Paragraph pairs** | a paragraph ending in `?` | the paragraphs after it |
+| **One paragraph** | its first line, ending in `?` | the lines below it (shift-return) |
 
 Collection stops at the next heading of the same or higher level, so the FAQ can sit
 anywhere on the page.
@@ -237,8 +238,12 @@ Each page is read separately: an FAQ inside a sub-page or a database row produce
 to match what a visitor actually sees on the URL, so a long guide with its own FAQ gets
 its own — and the index claims only the questions it really shows.
 
-Override the heading pattern with `site.faqHeading` for another language or wording
-(e.g. `/^常見問題/`). The `faq` array in `site.config.mjs` is a **fallback only**, for a
+Override the heading pattern with `site.faqHeading` for another language or wording —
+`/^常見問題/`, or `/^(faq|quick questions)/i` if you head your Q&A something other than
+"FAQ". Worth checking: an FAQ you have already written under a different title is
+invisible to the default pattern, and silently produces no structured data.
+
+The `faq` array in `site.config.mjs` is a **fallback only**, for a
 site with no FAQ in its Notion page — content there does not live in Notion, will not
 update when the page does, and is published in the site owner's voice, so prefer the
 Notion route. A Notion FAQ always wins over the array.
@@ -287,6 +292,23 @@ it in Notion for a block the API does return — a bookmark, or a plain link. Un
 buttons, these are **not** covered by the `default` entry: an embedded document is not a
 call to action, so inheriting the site-wide button link would put a "WhatsApp me" where
 a spreadsheet used to be. Each one has to be named explicitly.
+
+Add `embed: true` when the *live* value is the point — a running score, a public
+timetable — and it renders as a sandboxed `<iframe>` with the link kept underneath:
+
+```js
+'3704b82e-…': {
+  label: 'Client recommendation score',
+  url: 'https://docs.google.com/spreadsheets/d/…/preview',
+  embed: true,
+  height: 300,        // optional, defaults to 420
+},
+```
+
+Prefer a plain link otherwise. An embed makes the page depend on a third party for
+render, weight and uptime, and nothing inside the frame counts as content on your page —
+it belongs to the other origin, so no crawler reads it as yours. Whatever the frame
+shows, say it in your own words nearby too.
 
 ### Favicon
 
