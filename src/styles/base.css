@@ -248,3 +248,13 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 .db-detail__title { margin: 0 0 0.5rem; font-size: 1.2rem; }
 .db-detail__body > :first-child { margin-top: 0; }
 .db-detail__body > :last-child { margin-bottom: 0; }
+
+/* Custom emoji from Notion rich text — sits inline with the text baseline. */
+.nt-emoji {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: -0.22em;
+  margin-inline: 0.05em;
+  object-fit: contain;
+}

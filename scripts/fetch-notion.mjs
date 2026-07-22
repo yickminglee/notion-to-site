@@ -258,10 +258,23 @@ async function localiseAsset(url) {
   }
 }
 
+/** Mirror custom-emoji images referenced from rich text. */
+async function localiseRichText(rich) {
+  for (const token of rich ?? []) {
+    const emoji = token.mention?.custom_emoji;
+    if (emoji?.url) emoji.url = await localiseAsset(emoji.url);
+  }
+}
+
 /** Walk a block tree and mirror every embedded Notion-hosted asset. */
 async function localiseBlocks(blocks) {
   for (const block of blocks ?? []) {
     const node = block[block.type];
+    if (node?.rich_text) await localiseRichText(node.rich_text);
+    if (node?.caption) await localiseRichText(node.caption);
+    if (block.type === 'table_row') {
+      for (const cell of node?.cells ?? []) await localiseRichText(cell);
+    }
     if (node && (node.file || node.external)) {
       const localUrl = await localiseAsset(fileUrl(node));
       if (node.file) node.file.url = localUrl;
