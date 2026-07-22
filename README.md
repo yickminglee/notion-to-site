@@ -152,13 +152,13 @@ export const databaseLayouts = {
 | --- | --- |
 | `layout` | `gallery` · `list` · `cards` · `table` · `testimonial` · `detail` · `none` |
 | `ownPages` | `true` (default) — every row gets its own page at `/<slug>/`.<br>`false` — rows render inline on the index only. |
+| `tagProperty` | Property shown as a pill (gallery layout). |
+| `heading` | Overrides the section heading on the index. |
+| `intro` | A standalone answer sentence rendered above the section. |
 
 `detail` renders each row's **full body** inline. Use it for databases whose value is
 in the body rather than a summary — pricing tiers, policies — where a `list` excerpt
 would show only a lead-in like "Group lesson:". Pair it with `ownPages: false`.
-| `tagProperty` | Property shown as a pill (gallery layout). |
-| `heading` | Overrides the section heading on the index. |
-| `intro` | A standalone answer sentence rendered above the section. |
 
 Set `default` to `{ layout: 'none' }` to make newly-discovered databases **opt-in** —
 otherwise a database you add in Notion later starts publishing on the next deploy.
@@ -247,9 +247,10 @@ Notion content. Pushing to the connected branch also triggers a deploy.
 1. **Use this template** → new repo (private is fine; the template stays public).
 2. Edit `site.config.mjs`: name, tagline, location, schemaType, FAQ.
 3. Set the database-to-layout map for that site's databases.
-4. Restyle by overriding the CSS custom properties at the top of
-   [`src/styles/base.css`](src/styles/base.css) — colours, fonts, spacing, radius.
-   Styling is isolated from the pipeline, so a restyle never touches content code.
+4. Restyle in [`src/styles/theme.css`](src/styles/theme.css) — override the custom
+   properties (colours, fonts, spacing, radius) and add site-specific rules. It loads
+   after `base.css` so your overrides win, and it is the only file a restyle touches:
+   styling is fully isolated from the pipeline and the content.
 5. Add `.env` locally, then the same three variables in Railway.
 6. Deploy, generate a domain, set `DOMAIN`, redeploy.
 

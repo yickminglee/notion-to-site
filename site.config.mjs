@@ -22,7 +22,7 @@ export const site = {
    */
   schemaType: 'LocalBusiness',
 
-  /** Theme name -> src/styles/themes/<name>.css */
+  /** Label for this site's look. The actual styling lives in src/styles/theme.css. */
   theme: 'default',
 };
 

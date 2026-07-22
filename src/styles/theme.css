@@ -1,0 +1,14 @@
+/* ------------------------------------------------------------------ *
+ * PER-SITE THEME — this is the file you edit to restyle a site.
+ *
+ * Loaded after base.css, so anything set here wins. Styling is isolated
+ * from the pipeline: changing this file never touches content or fetch
+ * logic. Override the custom properties, and add site-specific rules
+ * (hero treatment, header, section accents) below.
+ * ------------------------------------------------------------------ */
+
+:root {
+  /* --font-body: 'Your Font', ui-sans-serif, system-ui, sans-serif; */
+  /* --color-accent: #2563eb; */
+  /* --radius: 12px; */
+}

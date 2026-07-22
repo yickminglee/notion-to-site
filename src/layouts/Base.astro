@@ -2,6 +2,8 @@
 import Seo from '../components/Seo.astro';
 import { site } from '../../site.config.mjs';
 import '../styles/base.css';
+// Loaded second so per-site overrides win over the base tokens.
+import '../styles/theme.css';
 
 const { title, description, image, schemas } = Astro.props;
 ---
