@@ -1,44 +1,69 @@
 ---
-/** One page per database row, at a clean keyword-friendly URL. */
+/**
+ * One page per database row and per Notion sub-page, at a clean
+ * keyword-friendly URL.
+ */
 import Base from '../layouts/Base.astro';
 import NotionBlocks from '../components/NotionBlocks.astro';
-import { routableRows, excerpt } from '../lib/content.mjs';
+import { routableRows, childPages, excerpt } from '../lib/content.mjs';
 import { site } from '../../site.config.mjs';
 
 export function getStaticPaths() {
-  return routableRows.map((row) => ({ params: { slug: row.slug }, props: { row } }));
+  return [
+    ...routableRows.map((row) => ({
+      params: { slug: row.slug },
+      props: { entry: row, kind: 'row' },
+    })),
+    ...childPages.map((sub) => ({
+      params: { slug: sub.slug },
+      props: { entry: sub, kind: 'subpage' },
+    })),
+  ];
 }
 
-const { row } = Astro.props;
+const { entry, kind } = Astro.props;
 
 // Specific service name in the title beats a generic one for search and citation.
-const title = `${row.title} — ${site.name}`;
+const title = `${entry.title} — ${site.name}`;
 const description =
-  excerpt(row.blocks, 155) || `${row.title} in ${site.location}. ${site.tagline}`;
+  excerpt(entry.blocks, 155) || `${entry.title} in ${site.location}. ${site.tagline}`;
 
-const schemas = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name: row.title,
-    serviceType: row.title,
-    areaServed: { '@type': 'Place', name: site.location },
-    provider: { '@type': site.schemaType, name: site.name },
-  },
-];
+/**
+ * A database row is a service offering; a sub-page is supporting material
+ * (policies, guides) and should not claim to be one.
+ */
+const schemas =
+  kind === 'row'
+    ? [{
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: entry.title,
+        serviceType: entry.title,
+        areaServed: { '@type': 'Place', name: site.location },
+        provider: { '@type': site.schemaType, name: site.name },
+      }]
+    : [];
 
-const tags = Object.entries(row.properties ?? {})
-  .filter(([key, value]) => !['is_hidden', 'view_order', 'Slug'].includes(key) && typeof value === 'string' && value)
-  .filter(([, value]) => value !== row.title);
+const tags =
+  kind === 'row'
+    ? Object.entries(entry.properties ?? {})
+        .filter(
+          ([key, value]) =>
+            !['is_hidden', 'view_order', 'Slug'].includes(key) &&
+            typeof value === 'string' &&
+            value &&
+            value !== entry.title
+        )
+    : [];
 ---
 
-<Base title={title} description={description} image={row.cover} schemas={schemas}>
+<Base title={title} description={description} image={entry.cover} schemas={schemas}>
   <article class="page page--row">
-    {row.cover && <img class="page__cover" src={row.cover} alt="" />}
+    {entry.cover && <img class="page__cover" src={entry.cover} alt="" />}
 
     <p class="page__breadcrumb"><a href="/">← {site.name}</a></p>
 
-    <h1 class="page__title">{row.title}</h1>
+    <h1 class="page__title">{entry.title}</h1>
 
     {tags.length > 0 && (
       <p class="page__tags">
@@ -47,7 +72,7 @@ const tags = Object.entries(row.properties ?? {})
     )}
 
     <div class="page__body">
-      <NotionBlocks blocks={row.blocks} />
+      <NotionBlocks blocks={entry.blocks} />
     </div>
   </article>
 </Base>

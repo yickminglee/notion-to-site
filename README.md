@@ -174,8 +174,10 @@ that dilute the site in search rather than helping it.
 
 ## URLs and slugs
 
-Each routed row becomes `/<slug>/`, rendering that row's full body. No Notion hex IDs
-appear in URLs.
+Each database row **and each Notion sub-page** becomes `/<slug>/`, rendering its full
+body. Sub-pages (`child_page` blocks) are linked from wherever they appear in the parent
+page, and are included in `sitemap.xml`. They get no `Service` schema — a policy or guide
+page is supporting material, not a service offering. No Notion hex IDs appear in URLs.
 
 - A **`Slug`** text property wins when present and non-empty.
 - Otherwise the slug is derived from the row title.

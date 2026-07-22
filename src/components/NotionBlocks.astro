@@ -9,7 +9,7 @@
 import { renderRichText, toPlain, escapeHtml } from '../lib/richtext.mjs';
 import Self from './NotionBlocks.astro';
 import DatabaseSection from './DatabaseSection.astro';
-import { databases, buttonFor } from '../lib/content.mjs';
+import { databases, buttonFor, childPageIndex } from '../lib/content.mjs';
 
 const { blocks = [] } = Astro.props;
 
@@ -234,9 +234,15 @@ const calloutIcon = (block) =>
           return db ? <DatabaseSection db={db} inline /> : null;
         }
 
-        case 'child_page':
-          // Sub-pages are not routed; surface the title so the content is not lost.
-          return <p class="nt-childpage">{b.child_page?.title}</p>;
+        case 'child_page': {
+          // Sub-pages get their own page — link to it rather than dropping the body.
+          const sub = childPageIndex.get(b.id);
+          return (
+            <p class="nt-childpage">
+              {sub ? <a href={`/${sub.slug}/`}>{sub.title}</a> : b.child_page?.title}
+            </p>
+          );
+        }
 
         case 'synced_block':
         case 'table_of_contents':

@@ -61,6 +61,36 @@ export const routableRows = databases.flatMap((db) => {
 });
 
 /**
+ * Notion sub-pages (child_page blocks), which also get their own page.
+ * Their body is fetched with the rest of the tree, so without this the content
+ * would be pulled from Notion and then silently dropped at render time.
+ */
+export const childPages = (() => {
+  const out = [];
+  const seen = new Set();
+  const walk = (blocks) => {
+    for (const block of blocks ?? []) {
+      if (block.type === 'child_page' && block.__slug && !seen.has(block.id)) {
+        seen.add(block.id);
+        out.push({
+          id: block.id,
+          title: block.child_page?.title ?? '',
+          slug: block.__slug,
+          blocks: block.__children ?? [],
+        });
+      }
+      if (block.__children) walk(block.__children);
+    }
+  };
+  walk(page.blocks);
+  for (const db of databases) for (const item of db.items) walk(item.blocks);
+  return out;
+})();
+
+/** Slug -> title, so a child_page block can render as a link to its own page. */
+export const childPageIndex = new Map(childPages.map((p) => [p.id, p]));
+
+/**
  * FAQ, read from the Notion page itself.
  *
  * Put the FAQ under a heading whose text starts with "FAQ" or "Frequently
@@ -176,14 +206,22 @@ export function faqFromNotion(pattern = /^(faq|frequently asked)/i) {
  * First meaningful paragraph of a row, used as its meta description.
  * Falls back to the tagline at the call site when a row has no prose.
  */
+const EXCERPT_TYPES = new Set([
+  'paragraph',
+  'callout',
+  'quote',
+  // Pages made entirely of bullets (policies, checklists) would otherwise fall
+  // back to the generic site tagline for their meta description.
+  'bulleted_list_item',
+  'numbered_list_item',
+  'toggle',
+]);
+
 export function excerpt(blocks, limit = 155) {
   for (const block of blocks ?? []) {
-    const text =
-      block.type === 'paragraph'
-        ? toPlain(block.paragraph.rich_text)
-        : block.type === 'callout'
-          ? toPlain(block.callout.rich_text)
-          : '';
+    const text = EXCERPT_TYPES.has(block.type)
+      ? toPlain(block[block.type]?.rich_text)
+      : '';
     const clean = text.trim();
     if (clean.length > 20) {
       return clean.length > limit ? `${clean.slice(0, limit - 1).trimEnd()}…` : clean;

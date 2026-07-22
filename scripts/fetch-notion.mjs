@@ -129,6 +129,11 @@ async function readBlocks(blockId, found, depth = 0) {
     if (block.type === 'unsupported' && block.unsupported?.block_type === 'button') {
       buttonIds.push(block.id);
     }
+    // Sub-pages get their own page, like database rows. Assign the slug here so
+    // it shares the collision check with every other slug on the site.
+    if (block.type === 'child_page') {
+      block.__slug = slugify(block.child_page?.title ?? '', block.id);
+    }
     if (block.has_children) {
       block.__children = await readBlocks(block.id, found, depth + 1);
     }
