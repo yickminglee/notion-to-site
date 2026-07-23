@@ -129,8 +129,9 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 }
 .nt-embed figcaption { font-size: 0.875rem; color: var(--color-muted); margin-top: 0.5rem; }
 
-/* Live media embeds (Instagram, YouTube, Vimeo). The provider's own page is
- * framed cross-origin, so no script is added to this page. */
+/* Live media embeds (YouTube, Vimeo). The provider's own page is framed
+ * cross-origin, so no script is added to this page. Instagram is not embedded —
+ * it login-walls logged-out visitors — and renders as a link instead. */
 .nt-embed-frame {
   position: relative; width: 100%; overflow: hidden;
   border: 1px solid var(--color-border);
@@ -138,10 +139,6 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 }
 .nt-embed-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .nt-embed--video .nt-embed-frame { aspect-ratio: 16 / 9; }
-/* Instagram's /embed page has its own portrait chrome and a fixed comfortable
- * width, so it gets a narrow card and a set height rather than an aspect box. */
-.nt-embed--instagram { max-width: 400px; }
-.nt-embed--instagram .nt-embed-frame { height: 640px; }
 
 .nt-toggle { margin: 0.75rem 0; }
 .nt-toggle summary { cursor: pointer; font-weight: 600; }

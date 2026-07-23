@@ -10,7 +10,7 @@ import { renderRichText, toPlain, escapeHtml } from '../lib/richtext.mjs';
 import Self from './NotionBlocks.astro';
 import DatabaseSection from './DatabaseSection.astro';
 import { databases, buttonFor, linkFor, childPageIndex } from '../lib/content.mjs';
-import { embedFrame } from '../lib/embeds.mjs';
+import { embedFrame, embedLabel } from '../lib/embeds.mjs';
 
 const { blocks = [] } = Astro.props;
 
@@ -163,9 +163,10 @@ const calloutIcon = (block) =>
           if (!src) return null;
           const caption = toPlain(b[b.type].caption);
 
-          // An Instagram/YouTube/Vimeo URL becomes a live embed; the iframe is
-          // cross-origin, so it adds no JS to this page. Everything else stays a
-          // link — lighter, and independent of the other site.
+          // A YouTube/Vimeo URL becomes a live embed; the iframe is cross-origin,
+          // so it adds no JS to this page. Instagram is excluded on purpose — its
+          // /embed endpoint redirects logged-out visitors to a login page, so an
+          // iframe would show a login wall instead of the post.
           const frame = b.type === 'embed' || b.type === 'video' ? embedFrame(src) : null;
           if (frame) {
             return (
@@ -173,7 +174,7 @@ const calloutIcon = (block) =>
                 <div class="nt-embed-frame">
                   <iframe
                     src={frame.src}
-                    title={caption || (frame.provider === 'instagram' ? 'Instagram post' : 'Embedded video')}
+                    title={caption || 'Embedded video'}
                     loading="lazy"
                     referrerpolicy="no-referrer"
                     allowfullscreen
@@ -184,9 +185,11 @@ const calloutIcon = (block) =>
             );
           }
 
+          // Anything not embeddable stays a link, but a named one where we can
+          // recognise the provider, so it doesn't render as a bare URL.
           return (
             <p class="nt-file">
-              <a href={src} rel="noopener noreferrer">{caption || src}</a>
+              <a href={src} rel="noopener noreferrer">{caption || embedLabel(src) || src}</a>
             </p>
           );
         }
