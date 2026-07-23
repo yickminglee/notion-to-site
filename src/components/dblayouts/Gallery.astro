@@ -18,6 +18,12 @@ const {
   linkProperty = null,
   /** 'cover' fills the frame and crops; 'contain' shows the whole image. */
   imageFit = 'cover',
+  /**
+   * Title-only cards, matching Notion's "compact / small / show Name only"
+   * gallery view. No image frame, no property body — just the linked title, so
+   * a set of rows with no cover art doesn't render a column of empty boxes.
+   */
+  compact = false,
 } = Astro.props;
 
 /** A files property is an array; a cover is a single string. */
@@ -31,8 +37,20 @@ const imageFor = (item) => {
 };
 ---
 
-<ul class="db-gallery">
-  {items.map((item) => {
+<ul class:list={['db-gallery', compact && 'db-gallery--compact']}>
+  {compact
+    ? items.map((item) => (
+        <li class="db-gallery__item">
+          {item.href ? (
+            <a class="db-gallery__link" href={item.href}>
+              <h3 class="db-gallery__title">{item.title}</h3>
+            </a>
+          ) : (
+            <h3 class="db-gallery__title">{item.title}</h3>
+          )}
+        </li>
+      ))
+    : items.map((item) => {
     const tag = tagProperty ? item.properties?.[tagProperty] : null;
     const image = imageFor(item);
     const body = bodyProperty ? item.properties?.[bodyProperty] : null;

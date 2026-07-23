@@ -129,6 +129,20 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 }
 .nt-embed figcaption { font-size: 0.875rem; color: var(--color-muted); margin-top: 0.5rem; }
 
+/* Live media embeds (Instagram, YouTube, Vimeo). The provider's own page is
+ * framed cross-origin, so no script is added to this page. */
+.nt-embed-frame {
+  position: relative; width: 100%; overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius); background: var(--color-surface);
+}
+.nt-embed-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.nt-embed--video .nt-embed-frame { aspect-ratio: 16 / 9; }
+/* Instagram's /embed page has its own portrait chrome and a fixed comfortable
+ * width, so it gets a narrow card and a set height rather than an aspect box. */
+.nt-embed--instagram { max-width: 400px; }
+.nt-embed--instagram .nt-embed-frame { height: 640px; }
+
 .nt-toggle { margin: 0.75rem 0; }
 .nt-toggle summary { cursor: pointer; font-weight: 600; }
 
@@ -203,6 +217,15 @@ h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.2; text-wrap: 
 .db-gallery__note {
   margin: 0; padding: 0 1rem 1.1rem; font-size: 0.85rem;
   color: var(--color-muted); white-space: pre-line;
+}
+
+/* compact: title-only cards (Notion "small / show Name only" gallery). */
+.db-gallery--compact {
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+}
+.db-gallery--compact .db-gallery__title {
+  margin: 0; padding: 0.8rem 1rem; font-size: 1rem; font-weight: 600;
 }
 
 /* list */
